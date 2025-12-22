@@ -43,7 +43,7 @@ ${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType === 'old_yang' ? '�
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.API_KEY}`
+        "Authorization": `Bearer ${import.meta.env.VITE_API_KEY}`
       },
       body: JSON.stringify({
         model: "deepseek-chat",
