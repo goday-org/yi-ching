@@ -39,14 +39,14 @@ ${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType === 'old_yang' ? '�
 一句短语总结应对之道。`;
 
   try {
-    const response = await fetch("https://api.deepseek.com/chat/completions", {
+    const response = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${import.meta.env.VITE_API_KEY}`
       },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
         messages: [
           { role: "system", content: "你是一位专业的易经占卜师，语言庄重、玄妙且富有洞察力。" },
           { role: "user", content: prompt }
