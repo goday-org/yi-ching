@@ -157,7 +157,7 @@ const App: React.FC = () => {
                   <div className="absolute inset-0 border-2 border-amber-400 rounded-full border-t-transparent animate-spin"></div>
                 </div>
                 <div className="space-y-3">
-                  <h3 className="text-xl sm:text-2xl font-bold text-amber-100 font-serif tracking-widest">DeepSeek 正在推演天机</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-amber-100 font-serif tracking-widest">正在推演天机</h3>
                   <p className="text-slate-500 italic font-serif text-sm">大数据易理深度解析中...</p>
                 </div>
               </div>
