@@ -18,7 +18,7 @@ const Compass: React.FC = () => {
   return (
     <div className="relative w-80 h-80 md:w-[600px] md:h-[600px] flex items-center justify-center select-none group">
       {/* 底部扩散金光 */}
-      <div className="absolute inset-0 bg-gold-700/20 rounded-full blur-[100px] animate-pulse-glow group-hover:bg-gold-500/30 transition-all duration-1000"></div>
+      <div className="absolute inset-0 bg-gold-700/20 rounded-full blur-[120px] animate-pulse-glow group-hover:bg-gold-500/40 transition-all duration-[1500ms] ease-out"></div>
       <div className="absolute inset-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] rounded-full opacity-30 pointer-events-none mix-blend-overlay"></div>
 
       {/* 罗盘容器 */}
@@ -125,7 +125,7 @@ const Compass: React.FC = () => {
         </div>
 
         {/* 核心：天池太极 (持续稳定旋转) */}
-        <div className="absolute w-[35%] h-[35%] z-20 shadow-[0_0_60px_rgba(212,175,55,0.4)] rounded-full">
+        <div className="absolute w-[35%] h-[35%] z-20 shadow-[0_0_80px_rgba(212,175,55,0.5)] rounded-full transition-shadow duration-1000 group-hover:shadow-[0_0_100px_rgba(212,175,55,0.7)]">
           <svg viewBox="0 0 200 200" className="w-full h-full animate-[spin_20s_linear_infinite]">
             <circle cx="100" cy="100" r="98" fill="#0B0F19" stroke="#D4AF37" strokeWidth="3" />
             <path d="M 100,20 A 40,40 0 0 1 100,100 A 40,40 0 0 0 100,180 A 80,80 0 0 0 100,20" fill="#D4AF37" />
@@ -149,9 +149,9 @@ const Compass: React.FC = () => {
       </div>
 
       {/* 覆盖在中心的交互文字 */}
-      <div className="absolute z-40 flex flex-col items-center justify-center transform cursor-pointer group-hover:scale-110 transition-transform duration-700 ease-in-out">
-        <div className="w-[110px] h-[110px] rounded-full flex items-center justify-center bg-neutral-100/70 dark:bg-obsidian/60 backdrop-blur-xl border border-gold-500/50 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-           <span className="text-5xl font-black gold-text-gradient font-serif -mt-1 drop-shadow-md">
+      <div className="absolute z-40 flex flex-col items-center justify-center transform cursor-pointer group-hover:scale-110 transition-transform duration-[1200ms] ease-out">
+        <div className="w-[110px] h-[110px] rounded-full flex items-center justify-center bg-neutral-100/80 dark:bg-obsidian/70 backdrop-blur-2xl border border-gold-500/50 shadow-[0_0_40px_rgba(212,175,55,0.4)] transition-all duration-700 group-hover:bg-gold-500/10">
+           <span className="text-5xl font-black gold-text-gradient font-serif -mt-1 drop-shadow-lg">
              易
            </span>
         </div>

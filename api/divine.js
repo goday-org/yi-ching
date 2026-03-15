@@ -24,13 +24,14 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
+        model: "Pro/zai-org/GLM-5",
         messages: [
           { role: "system", content: "你是一位专业的易经占卜师，语言庄重、玄妙且富有洞察力。" },
           { role: "user", content: prompt }
         ],
         stream: false,
-        temperature: 0.7
+        temperature: 0.7,
+        enable_thinking: false,
       })
     });
 

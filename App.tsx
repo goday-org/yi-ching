@@ -85,7 +85,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 lg:p-8">
-      <div className="max-w-4xl w-full glass-panel rounded-[2.5rem] p-8 md:p-14 relative flex flex-col items-center min-h-[85vh] transition-all duration-700">
+      <div className="max-w-4xl w-full glass-panel rounded-[2.5rem] p-8 md:p-14 relative flex flex-col items-center min-h-[85vh] transition-all duration-1000 ease-out">
         
         {/* Theme Toggle */}
         <button
@@ -116,9 +116,9 @@ const App: React.FC = () => {
         <div className="absolute -bottom-[20%] -right-[10%] w-96 h-96 bg-sky-900/10 rounded-full blur-[100px] pointer-events-none"></div>
 
         {step === AppStep.LANDING && (
-          <div className="flex flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-1000 w-full h-full my-auto flex-1">
-            <div className="text-center space-y-4">
-              <h1 className="text-5xl md:text-7xl font-black gold-text-gradient tracking-[0.4em] md:tracking-[0.6em] drop-shadow-2xl font-serif">
+          <div className="flex flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-[1200ms] ease-out w-full h-full my-auto flex-1 pb-10">
+            <div className="text-center space-y-6">
+              <h1 className="text-5xl md:text-7xl font-black gold-text-gradient tracking-[0.4em] md:tracking-[0.6em] drop-shadow-2xl font-serif mt-4">
                 周易算卦
               </h1>
               <div className="flex items-center justify-center gap-4 text-gold-500/60 tracking-[0.3em] font-light text-xs md:text-sm uppercase">
@@ -128,13 +128,13 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            <div onClick={startDivination} className="cursor-pointer transform hover:scale-[1.03] transition-all duration-700 hover:drop-shadow-[0_0_40px_rgba(212,175,55,0.3)]">
+            <div onClick={startDivination} className="cursor-pointer transform hover:scale-[1.05] transition-all duration-700 hover:drop-shadow-[0_0_40px_rgba(212,175,55,0.4)]">
               <Compass />
             </div>
             
             <button
               onClick={startDivination}
-              className="px-14 py-4 gold-btn rounded-full text-obsidian font-bold text-lg tracking-[0.4em] uppercase"
+              className="px-14 py-4 gold-btn rounded-full text-obsidian font-bold text-lg tracking-[0.4em] uppercase hover:scale-[1.03]"
             >
               感应天机
             </button>
@@ -142,10 +142,10 @@ const App: React.FC = () => {
         )}
 
         {step === AppStep.INPUT && (
-          <form onSubmit={handleInputConfirm} className="w-full max-w-lg flex flex-col space-y-8 animate-in slide-in-from-bottom-8 duration-700 pt-16 flex-1">
-            <div className="text-center space-y-4 mb-4">
-              <h2 className="text-3xl md:text-4xl font-bold gold-text-gradient font-serif tracking-[0.2em]">诚心叩问</h2>
-              <p className="text-neutral-600 dark:text-gold-300/60 text-sm font-light tracking-widest">心诚则灵 · 意念合一</p>
+          <form onSubmit={handleInputConfirm} className="w-full max-w-lg flex flex-col space-y-8 animate-in slide-in-from-bottom-8 fade-in duration-1000 ease-out pt-16 flex-1">
+            <div className="text-center space-y-4 mb-6">
+              <h2 className="text-3xl md:text-5xl font-bold gold-text-gradient font-serif tracking-[0.2em]">诚心叩问</h2>
+              <p className="text-neutral-600 dark:text-gold-300/60 text-sm font-light tracking-[0.3em]">心诚则灵 · 意念合一</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -156,7 +156,7 @@ const App: React.FC = () => {
                   onClick={() => setFormData({ ...formData, type: type as DivinationType })}
                   className={`py-3.5 rounded-xl border transition-all duration-300 text-sm font-serif tracking-widest ${
                     formData.type === type 
-                      ? 'bg-gold-500/20 dark:bg-gold-500/10 border-gold-500 text-gold-700 dark:text-gold-300 shadow-[0_0_20px_rgba(212,175,55,0.15)]' 
+                      ? 'bg-gold-500/20 dark:bg-gold-500/15 border-gold-500 text-gold-700 dark:text-gold-300 shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-105' 
                       : 'bg-black/5 dark:bg-obsidian/30 text-neutral-600 dark:text-slate-400 border-neutral-300/50 dark:border-white/5 hover:border-gold-500/50 dark:hover:border-gold-500/30 hover:text-gold-700 dark:hover:text-gold-100 hover:bg-gold-500/10 dark:hover:bg-gold-500/5'
                   }`}
                 >
@@ -169,13 +169,13 @@ const App: React.FC = () => {
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
               placeholder="请详述您的困惑（如：近期事业变动，应当如何抉择？）"
-              className="w-full h-44 premium-input rounded-2xl p-6 font-serif leading-relaxed text-lg resize-none placeholder:text-neutral-400 dark:placeholder:text-slate-600"
+              className="w-full h-48 premium-input rounded-2xl p-6 font-serif leading-relaxed text-lg resize-none placeholder:text-neutral-400 dark:placeholder:text-slate-500"
               required
             />
 
             <button
               type="submit"
-              className="w-full py-4.5 gold-btn rounded-xl font-bold text-obsidian text-lg tracking-[0.3em] mt-4"
+              className="w-full py-4 gold-btn rounded-xl font-bold text-obsidian text-lg tracking-[0.3em] mt-6 hover:scale-[1.02] shadow-xl"
             >
               确认 · 进入起卦
             </button>
@@ -218,18 +218,18 @@ const App: React.FC = () => {
         )}
 
         {step === AppStep.RESULT && (
-          <div className="w-full flex flex-col h-full animate-in fade-in zoom-in-95 duration-1000 mt-12 md:mt-4">
+          <div className="w-full flex flex-col h-full animate-in fade-in zoom-in-95 duration-1000 ease-out mt-12 md:mt-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-gold-500/20 pb-6 mb-8 gap-6 md:gap-0">
               <div>
                 <p className="text-gold-300/60 text-xs tracking-[0.4em] uppercase mb-2 font-light">得卦</p>
-                <h2 className="text-4xl md:text-5xl font-black gold-text-gradient font-serif tracking-[0.2em] relative inline-block">
+                <h2 className="text-5xl md:text-6xl font-black gold-text-gradient font-serif tracking-[0.2em] relative inline-block">
                   {getOriginalHexName()}
-                  <span className="absolute -inset-4 bg-gold-500/10 blur-xl -z-10 rounded-full pointer-events-none"></span>
+                  <span className="absolute -inset-4 bg-gold-500/10 blur-2xl -z-10 rounded-full pointer-events-none"></span>
                 </h2>
               </div>
               <button 
                 onClick={reset} 
-                className="px-8 py-3 bg-neutral-100 dark:bg-obsidian/40 border border-gold-500/40 md:border-gold-500/30 hover:border-gold-500 hover:bg-gold-500/20 dark:hover:bg-gold-500/10 rounded-full text-gold-700 dark:text-gold-300 text-sm font-bold transition-all tracking-widest shrink-0 shadow-lg"
+                className="px-8 py-3.5 bg-neutral-100 dark:bg-obsidian/40 border border-gold-500/40 md:border-gold-500/30 hover:border-gold-500 hover:bg-gold-500/20 dark:hover:bg-gold-500/10 rounded-full text-gold-700 dark:text-gold-300 text-sm font-bold transition-all duration-300 tracking-widest shrink-0 shadow-lg hover:scale-105"
               >
                 谢卦 · 重开
               </button>

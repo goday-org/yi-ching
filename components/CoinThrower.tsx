@@ -47,14 +47,14 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
     }, 1000);
   }, [throws, isSpinning, onComplete]);
 
-  const Coin = ({ isCharSide, spinning }: { isCharSide: boolean; spinning: boolean }) => (
+  const Coin = ({ isCharSide, spinning, idx }: { isCharSide: boolean; spinning: boolean; idx: number }) => (
     <div 
-      className={`relative w-20 h-20 sm:w-28 sm:h-28 transition-all duration-1000 ${spinning ? 'animate-bounce' : 'scale-100'} filter drop-shadow-xl`}
-      style={{ perspective: '1000px' }}
+      className={`relative w-20 h-20 sm:w-28 sm:h-28 transition-all duration-1000 ${spinning ? 'animate-bounce' : 'scale-100'} filter drop-shadow-2xl`}
+      style={{ perspective: '1200px' }}
     >
       <div 
-        className={`w-full h-full relative transition-transform duration-1000 preserve-3d ${!spinning && isCharSide ? '[transform:rotateY(0deg)]' : '[transform:rotateY(180deg)]'}`}
-        style={{ transformStyle: 'preserve-3d' }}
+        className={`w-full h-full relative preserve-3d transition-transform duration-[1500ms] cubic-bezier(0.2, 0.8, 0.2, 1) ${spinning ? '[transform:rotateY(1440deg)_scale(1.2)]' : (isCharSide ? '[transform:rotateY(0deg)_scale(1)]' : '[transform:rotateY(180deg)_scale(1)]')}`}
+        style={{ transitionDelay: spinning ? '0ms' : `${idx * 150}ms` }}
       >
         {/* 字样面 - 阴 */}
         <div className="absolute inset-0 backface-hidden rounded-full shadow-2xl">
@@ -113,7 +113,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
 
       <div className="flex justify-center space-x-6 sm:space-x-10 h-32 items-center w-full">
         {currentCoins.map((isCharSide, idx) => (
-          <Coin key={idx} isCharSide={!!isCharSide} spinning={isSpinning} />
+          <Coin key={idx} idx={idx} isCharSide={!!isCharSide} spinning={isSpinning} />
         ))}
       </div>
 
@@ -142,23 +142,23 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
                   {!t ? (
                     <div className="w-full h-[1px] bg-neutral-300 dark:bg-slate-800 group-hover:bg-neutral-400 dark:group-hover:bg-slate-700 transition-colors duration-300"></div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center animate-in zoom-in-95 duration-500">
+                    <div className="w-full h-full flex items-center justify-center animate-in zoom-in-95 duration-700 ease-out">
                       {t.lineType === 'yang' && (
-                        <div className="w-full h-3.5 bg-gradient-to-r from-[#5C4A11] via-[#D4AF37] to-[#5C4A11] rounded shadow-[0_0_10px_rgba(212,175,55,0.2)] border border-[#FDF7E5]/10"></div>
+                        <div className="w-full h-3.5 bg-gradient-to-r from-[#5C4A11] via-[#D4AF37] to-[#5C4A11] rounded shadow-[0_0_15px_rgba(212,175,55,0.4)] border border-[#FDF7E5]/20"></div>
                       )}
                       {t.lineType === 'yin' && (
                         <div className="w-full h-3.5 flex justify-between">
-                          <div className="w-[44%] h-full bg-gradient-to-r from-[#5C4A11] via-[#9E8022] to-[#5C4A11] rounded shadow-[0_0_10px_rgba(212,175,55,0.1)] border border-[#FDF7E5]/5"></div>
-                          <div className="w-[44%] h-full bg-gradient-to-r from-[#5C4A11] via-[#9E8022] to-[#5C4A11] rounded shadow-[0_0_10px_rgba(212,175,55,0.1)] border border-[#FDF7E5]/5"></div>
+                          <div className="w-[44%] h-full bg-gradient-to-r from-[#5C4A11] via-[#9E8022] to-[#5C4A11] rounded shadow-[0_0_15px_rgba(212,175,55,0.3)] border border-[#FDF7E5]/10"></div>
+                          <div className="w-[44%] h-full bg-gradient-to-r from-[#5C4A11] via-[#9E8022] to-[#5C4A11] rounded shadow-[0_0_15px_rgba(212,175,55,0.3)] border border-[#FDF7E5]/10"></div>
                         </div>
                       )}
                       {t.lineType === 'old_yang' && (
-                        <div className="w-full h-4 bg-gradient-to-r from-red-900 via-rose-500 to-red-900 rounded shadow-[0_0_20px_rgba(244,63,94,0.3)] border border-rose-500/30"></div>
+                        <div className="w-full h-4 bg-gradient-to-r from-red-900 via-rose-500 to-red-900 rounded shadow-[0_0_25px_rgba(244,63,94,0.5)] border border-rose-500/50"></div>
                       )}
                       {t.lineType === 'old_yin' && (
                         <div className="w-full h-4 flex justify-between">
-                          <div className="w-[44%] h-full bg-gradient-to-r from-red-900 via-red-600 to-red-900 rounded border border-rose-500/20"></div>
-                          <div className="w-[44%] h-full bg-gradient-to-r from-red-900 via-red-600 to-red-900 rounded border border-rose-500/20"></div>
+                          <div className="w-[44%] h-full bg-gradient-to-r from-red-900 via-red-600 to-red-900 rounded shadow-[0_0_15px_rgba(220,38,38,0.4)] border border-rose-500/30"></div>
+                          <div className="w-[44%] h-full bg-gradient-to-r from-red-900 via-red-600 to-red-900 rounded shadow-[0_0_15px_rgba(220,38,38,0.4)] border border-rose-500/30"></div>
                         </div>
                       )}
                     </div>
