@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const Compass: React.FC = () => {
@@ -17,25 +16,26 @@ const Compass: React.FC = () => {
   const stemsBranches = ["甲","卯","乙","辰","巽","巳","丙","午","丁","未","坤","申","庚","酉","辛","戌","乾","亥","壬","子","癸","丑","艮","寅"];
 
   return (
-    <div className="relative w-72 h-72 md:w-[580px] md:h-[580px] flex items-center justify-center select-none">
+    <div className="relative w-80 h-80 md:w-[600px] md:h-[600px] flex items-center justify-center select-none group">
       {/* 底部扩散金光 */}
-      <div className="absolute inset-0 bg-amber-600/10 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute inset-0 bg-gold-700/20 rounded-full blur-[100px] animate-pulse-glow group-hover:bg-gold-500/30 transition-all duration-1000"></div>
+      <div className="absolute inset-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] rounded-full opacity-30 pointer-events-none mix-blend-overlay"></div>
 
       {/* 罗盘容器 */}
-      <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative w-full h-full flex items-center justify-center filter drop-shadow-[0_0_30px_rgba(212,175,55,0.2)]">
         
         {/* 最外层：六十四卦环 (旋转最慢) */}
-        <div className="absolute inset-0 animate-[spin_80s_linear_infinite]">
+        <div className="absolute inset-0 animate-[spin_120s_linear_infinite]">
           <svg viewBox="0 0 600 600" className="w-full h-full">
             <defs>
               <filter id="goldGlow">
-                <feGaussianBlur stdDeviation="1.5" result="blur" />
+                <feGaussianBlur stdDeviation="2" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
             </defs>
             {/* 底盘 */}
-            <circle cx="300" cy="300" r="295" fill="#0f172a" stroke="#d4af37" strokeWidth="2" />
-            <circle cx="300" cy="300" r="260" fill="none" stroke="#d4af37" strokeWidth="0.5" opacity="0.3" />
+            <circle cx="300" cy="300" r="295" fill="#040914" stroke="#D4AF37" strokeWidth="1.5" strokeOpacity="0.8" />
+            <circle cx="300" cy="300" r="260" fill="none" stroke="#D4AF37" strokeWidth="0.5" opacity="0.4" />
             
             {/* 六十四卦刻度与文字 */}
             {hexagrams.map((name, i) => {
@@ -48,14 +48,14 @@ const Compass: React.FC = () => {
                   <line 
                     x1={300 + 260 * Math.cos(rad)} y1={300 + 260 * Math.sin(rad)}
                     x2={300 + 295 * Math.cos(rad)} y2={300 + 295 * Math.sin(rad)}
-                    stroke="#d4af37" strokeWidth="0.5" opacity="0.4"
+                    stroke="#D4AF37" strokeWidth="0.5" opacity="0.5"
                   />
                   <text
                     x={xText} y={yText}
-                    fill="#fbbf24" fontSize="10" fontWeight="bold"
+                    fill="#F2DF8E" fontSize="10" fontWeight="600"
                     textAnchor="middle" alignmentBaseline="middle"
                     transform={`rotate(${angle + 90}, ${xText}, ${yText})`}
-                    className="font-serif opacity-80"
+                    className="font-serif opacity-90 tracking-widest"
                   >
                     {name}
                   </text>
@@ -66,9 +66,9 @@ const Compass: React.FC = () => {
         </div>
 
         {/* 中间层：二十四山环 (反向旋转) */}
-        <div className="absolute w-[82%] h-[82%] animate-[spin_50s_linear_infinite_reverse]">
+        <div className="absolute w-[82%] h-[82%] animate-[spin_80s_linear_infinite_reverse]">
           <svg viewBox="0 0 500 500" className="w-full h-full">
-            <circle cx="250" cy="250" r="245" fill="#1e293b" stroke="#d4af37" strokeWidth="1" />
+            <circle cx="250" cy="250" r="245" fill="#0B0F19" stroke="#9E8022" strokeWidth="1" />
             {stemsBranches.map((name, i) => {
               const angle = (i * 360) / 24 - 90;
               const rad = (angle * Math.PI) / 180;
@@ -79,14 +79,15 @@ const Compass: React.FC = () => {
                   <line 
                     x1={250 + 205 * Math.cos(rad)} y1={250 + 205 * Math.sin(rad)}
                     x2={250 + 245 * Math.cos(rad)} y2={250 + 245 * Math.sin(rad)}
-                    stroke="#d4af37" strokeWidth="1" opacity="0.3"
+                    stroke="#D4AF37" strokeWidth="1" opacity="0.4"
                   />
                   <text
                     x={x} y={y}
-                    fill="#d4af37" fontSize="14" fontWeight="bold"
+                    fill="#D4AF37" fontSize="14" fontWeight="bold"
                     textAnchor="middle" alignmentBaseline="middle"
                     transform={`rotate(${angle + 90}, ${x}, ${y})`}
                     className="font-serif"
+                    filter="url(#goldGlow)"
                   >
                     {name}
                   </text>
@@ -97,9 +98,9 @@ const Compass: React.FC = () => {
         </div>
 
         {/* 内层：八卦符号环 (旋转较快) */}
-        <div className="absolute w-[62%] h-[62%] animate-[spin_30s_linear_infinite]">
+        <div className="absolute w-[62%] h-[62%] animate-[spin_50s_linear_infinite]">
           <svg viewBox="0 0 400 400" className="w-full h-full">
-            <circle cx="200" cy="200" r="195" fill="#0f172a" stroke="#fbbf24" strokeWidth="1" />
+            <circle cx="200" cy="200" r="195" fill="#040914" stroke="#D4AF37" strokeWidth="1.5" />
             {[...Array(8)].map((_, i) => {
               const angle = (i * 45) - 90;
               const rad = (angle * Math.PI) / 180;
@@ -111,9 +112,10 @@ const Compass: React.FC = () => {
                 <text
                   key={`tri-${i}`}
                   x={x} y={y}
-                  fill="#fbbf24" fontSize="32"
+                  fill="#FDF7E5" fontSize="36"
                   textAnchor="middle" alignmentBaseline="middle"
                   transform={`rotate(${angle + 90}, ${x}, ${y})`}
+                  opacity="0.9"
                 >
                   {trigrams[i]}
                 </text>
@@ -123,33 +125,33 @@ const Compass: React.FC = () => {
         </div>
 
         {/* 核心：天池太极 (持续稳定旋转) */}
-        <div className="absolute w-[35%] h-[35%] z-20 shadow-[0_0_50px_rgba(251,191,36,0.2)] rounded-full">
-          <svg viewBox="0 0 200 200" className="w-full h-full animate-[spin_15s_linear_infinite]">
-            <circle cx="100" cy="100" r="98" fill="#1e293b" stroke="#fbbf24" strokeWidth="3" />
-            <path d="M 100,20 A 40,40 0 0 1 100,100 A 40,40 0 0 0 100,180 A 80,80 0 0 0 100,20" fill="#fbbf24" />
-            <path d="M 100,20 A 40,40 0 0 1 100,100 A 40,40 0 0 0 100,180 A 80,80 0 0 1 100,20" fill="#0f172a" />
-            <circle cx="100" cy="60" r="12" fill="#0f172a" />
-            <circle cx="100" cy="140" r="12" fill="#fbbf24" />
+        <div className="absolute w-[35%] h-[35%] z-20 shadow-[0_0_60px_rgba(212,175,55,0.4)] rounded-full">
+          <svg viewBox="0 0 200 200" className="w-full h-full animate-[spin_20s_linear_infinite]">
+            <circle cx="100" cy="100" r="98" fill="#0B0F19" stroke="#D4AF37" strokeWidth="3" />
+            <path d="M 100,20 A 40,40 0 0 1 100,100 A 40,40 0 0 0 100,180 A 80,80 0 0 0 100,20" fill="#D4AF37" />
+            <path d="M 100,20 A 40,40 0 0 1 100,100 A 40,40 0 0 0 100,180 A 80,80 0 0 1 100,20" fill="#040914" />
+            <circle cx="100" cy="60" r="12" fill="#040914" />
+            <circle cx="100" cy="140" r="12" fill="#D4AF37" />
           </svg>
         </div>
 
         {/* 罗盘指针（天针） - 不随罗盘旋转，始终指向正北，增加写实感 */}
         <div className="absolute w-full h-full pointer-events-none z-30">
           <svg viewBox="0 0 600 600" className="w-full h-full">
-            <line x1="300" y1="50" x2="300" y2="550" stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.3" />
-            <line x1="50" y1="300" x2="550" y2="300" stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.3" />
+            <line x1="300" y1="50" x2="300" y2="550" stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.4" />
+            <line x1="50" y1="300" x2="550" y2="300" stroke="#ef4444" strokeWidth="1" strokeDasharray="4 4" opacity="0.4" />
             {/* 指针 */}
-            <path d="M 300,120 L 305,300 L 295,300 Z" fill="#ef4444" opacity="0.8" />
-            <path d="M 300,480 L 305,300 L 295,300 Z" fill="#94a3b8" opacity="0.8" />
-            <circle cx="300" cy="300" r="4" fill="#fbbf24" />
+            <path d="M 300,110 L 304,300 L 296,300 Z" fill="#ef4444" opacity="0.9" />
+            <path d="M 300,490 L 304,300 L 296,300 Z" fill="#94a3b8" opacity="0.9" />
+            <circle cx="300" cy="300" r="4.5" fill="#D4AF37" />
           </svg>
         </div>
       </div>
 
       {/* 覆盖在中心的交互文字 */}
-      <div className="absolute z-40 flex flex-col items-center justify-center transform group cursor-pointer">
-        <div className="w-24 h-24 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-amber-500/30 group-hover:scale-110 transition-transform duration-500">
-           <span className="text-4xl font-bold bg-gradient-to-b from-amber-200 to-amber-600 bg-clip-text text-transparent font-serif">
+      <div className="absolute z-40 flex flex-col items-center justify-center transform cursor-pointer group-hover:scale-110 transition-transform duration-700 ease-in-out">
+        <div className="w-[110px] h-[110px] rounded-full flex items-center justify-center bg-obsidian/60 backdrop-blur-xl border border-gold-500/50 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+           <span className="text-5xl font-black gold-text-gradient font-serif -mt-1 drop-shadow-md">
              易
            </span>
         </div>

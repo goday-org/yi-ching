@@ -4,38 +4,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>周易六爻算卦</title>
+    <title>周易六爻算卦 - 天地玄机</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Noto Serif SC"', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: '#0B0F19',
+                        gold: {
+                            100: '#FDF7E5',
+                            300: '#F2DF8E',
+                            500: '#D4AF37',
+                            700: '#9E8022',
+                            900: '#5C4A11',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'pulse-glow': 'pulse-glow 4s ease-in-out infinite',
+                        'spin-slow': 'spin 60s linear infinite',
+                        'spin-slow-reverse': 'spin 80s linear infinite reverse',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: '0.4', filter: 'blur(40px)' },
+                            '50%': { opacity: '0.7', filter: 'blur(60px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
             font-family: 'Noto Serif SC', serif;
-            background-color: #0f172a; /* 更明亮的深蓝色调 */
+            background-color: #040914; /* Deep obsidian */
             color: #f1f5f9;
             overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
-        @keyframes rotate-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        
+        /* Ambient Backgrounds */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -2;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.05) 0%, transparent 40%);
         }
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.5; filter: blur(40px); }
-            50% { opacity: 0.8; filter: blur(60px); }
+
+        .stars {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 90px 40px, #D4AF37, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 150px 100px, rgba(255,255,255,0.6), rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            animation: float 20s linear infinite;
+            opacity: 0.2;
         }
-        .animate-rotate-slow {
-            animation: rotate-slow 60s linear infinite;
-        }
-        .divine-glow {
-            animation: pulse-glow 4s ease-in-out infinite;
-        }
-        .ink-bg {
-          background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-        }
+        
+        /* Glassmorphism Panels */
         .glass-panel {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(212, 175, 55, 0.2);
+            background: rgba(11, 15, 25, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
+        
+        /* Premium Text & Buttons */
+        .gold-text-gradient {
+            background: linear-gradient(135deg, #FDF7E5 0%, #D4AF37 40%, #D4AF37 60%, #9E8022 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, #D4AF37 0%, #9E8022 100%);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(253, 247, 229, 0.4);
+            color: #040914;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gold-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(45deg) translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .gold-btn:hover {
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .gold-btn:hover::after {
+            transform: rotate(45deg) translateX(100%);
+        }
+
+        /* Input specific styles */
+        .premium-input {
+            background: rgba(4, 9, 20, 0.5);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            color: #FDF7E5;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        .premium-input:focus {
+            background: rgba(11, 15, 25, 0.8);
+            border-color: rgba(212, 175, 55, 0.6);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 2px 5px rgba(0,0,0,0.5);
+            outline: none;
+        }
+
+        /* Result formatting */
+        .prose-premium p {
+            color: rgba(241, 245, 249, 0.8) !important;
+            line-height: 1.8;
+            letter-spacing: 0.02em;
+        }
+        .prose-premium h3 {
+            color: #D4AF37 !important;
+            border-left-color: #D4AF37 !important;
+        }
+        
     </style>
 <script type="importmap">
 {
@@ -47,9 +169,10 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="ink-bg min-h-screen">
+<body class="min-h-screen text-slate-100">
+    <div class="ambient-bg"></div>
+    <div class="stars"></div>
     <div id="root"></div>
 <script type="module" src="/index.tsx"></script>
 </body>
