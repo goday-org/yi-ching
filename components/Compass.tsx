@@ -150,7 +150,7 @@ const Compass: React.FC = () => {
 
       {/* 覆盖在中心的交互文字 */}
       <div className="absolute z-40 flex flex-col items-center justify-center transform cursor-pointer group-hover:scale-110 transition-transform duration-700 ease-in-out">
-        <div className="w-[110px] h-[110px] rounded-full flex items-center justify-center bg-obsidian/60 backdrop-blur-xl border border-gold-500/50 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+        <div className="w-[110px] h-[110px] rounded-full flex items-center justify-center bg-neutral-100/70 dark:bg-obsidian/60 backdrop-blur-xl border border-gold-500/50 shadow-[0_0_30px_rgba(212,175,55,0.3)]">
            <span className="text-5xl font-black gold-text-gradient font-serif -mt-1 drop-shadow-md">
              易
            </span>

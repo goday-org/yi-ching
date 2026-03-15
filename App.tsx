@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppStep, DivinationType, DivinationData, ThrowResult } from './types';
 import { DIVINATION_TYPES, HEXAGRAM_NAMES } from './constants';
 import Compass from './components/Compass';
@@ -6,6 +6,25 @@ import CoinThrower from './components/CoinThrower';
 import { interpretDivination } from './services/gemini';
 
 const App: React.FC = () => {
+  const [isDark, setIsDark] = useState<boolean>(true);
+  
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    if (root.classList.contains('dark')) {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDark(false);
+    } else {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDark(true);
+    }
+  };
+
   const [step, setStep] = useState<AppStep>(AppStep.LANDING);
   const [formData, setFormData] = useState<{ type: DivinationType; question: string }>({
     type: '感情问题',
@@ -66,12 +85,24 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 lg:p-8">
-      <div className="max-w-4xl w-full glass-panel rounded-[2.5rem] p-8 md:p-14 relative flex flex-col items-center min-h-[85vh] border border-white/5 transition-all duration-700">
+      <div className="max-w-4xl w-full glass-panel rounded-[2.5rem] p-8 md:p-14 relative flex flex-col items-center min-h-[85vh] transition-all duration-700">
         
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="absolute top-6 right-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gold-700 dark:text-gold-300 transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-gold-500/30"
+          aria-label="切换主题"
+        >
+          {isDark ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          )}
+        </button>
         {(step === AppStep.INPUT || step === AppStep.DIVINATION || step === AppStep.RESULT) && (
           <button 
             onClick={goBack}
-            className="absolute top-6 left-6 z-50 p-3 rounded-full bg-white/5 hover:bg-white/10 text-gold-300 transition-all backdrop-blur-md border border-white/10 hover:border-gold-500/30"
+            className="absolute top-6 left-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gold-700 dark:text-gold-300 transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-gold-500/30"
             aria-label="返回"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -114,7 +145,7 @@ const App: React.FC = () => {
           <form onSubmit={handleInputConfirm} className="w-full max-w-lg flex flex-col space-y-8 animate-in slide-in-from-bottom-8 duration-700 pt-16 flex-1">
             <div className="text-center space-y-4 mb-4">
               <h2 className="text-3xl md:text-4xl font-bold gold-text-gradient font-serif tracking-[0.2em]">诚心叩问</h2>
-              <p className="text-gold-300/60 text-sm font-light tracking-widest">心诚则灵 · 意念合一</p>
+              <p className="text-neutral-600 dark:text-gold-300/60 text-sm font-light tracking-widest">心诚则灵 · 意念合一</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -125,8 +156,8 @@ const App: React.FC = () => {
                   onClick={() => setFormData({ ...formData, type: type as DivinationType })}
                   className={`py-3.5 rounded-xl border transition-all duration-300 text-sm font-serif tracking-widest ${
                     formData.type === type 
-                      ? 'bg-gold-500/10 border-gold-500 text-gold-300 shadow-[0_0_20px_rgba(212,175,55,0.15)]' 
-                      : 'bg-obsidian/30 text-slate-400 border-white/5 hover:border-gold-500/30 hover:text-gold-100 hover:bg-gold-500/5'
+                      ? 'bg-gold-500/20 dark:bg-gold-500/10 border-gold-500 text-gold-700 dark:text-gold-300 shadow-[0_0_20px_rgba(212,175,55,0.15)]' 
+                      : 'bg-black/5 dark:bg-obsidian/30 text-neutral-600 dark:text-slate-400 border-neutral-300/50 dark:border-white/5 hover:border-gold-500/50 dark:hover:border-gold-500/30 hover:text-gold-700 dark:hover:text-gold-100 hover:bg-gold-500/10 dark:hover:bg-gold-500/5'
                   }`}
                 >
                   {type}
@@ -138,7 +169,7 @@ const App: React.FC = () => {
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
               placeholder="请详述您的困惑（如：近期事业变动，应当如何抉择？）"
-              className="w-full h-44 premium-input rounded-2xl p-6 font-serif leading-relaxed text-lg resize-none placeholder:text-slate-600"
+              className="w-full h-44 premium-input rounded-2xl p-6 font-serif leading-relaxed text-lg resize-none placeholder:text-neutral-400 dark:placeholder:text-slate-600"
               required
             />
 
@@ -171,13 +202,13 @@ const App: React.FC = () => {
               </div>
             ) : error ? (
               <div className="flex flex-col items-center space-y-8 py-20 px-4 text-center max-w-md">
-                <div className="w-20 h-20 rounded-full bg-red-900/20 border border-red-500/30 flex items-center justify-center text-red-400">
+                <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 flex items-center justify-center text-red-600 dark:text-red-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
-                <p className="text-red-200/70 font-serif leading-relaxed text-lg">{error}</p>
+                <p className="text-red-800 dark:text-red-200/70 font-serif leading-relaxed text-lg">{error}</p>
                 <button 
                   onClick={() => divinationData && handleDivinationComplete(divinationData.throws)}
-                  className="px-8 py-3.5 bg-obsidian/50 border border-gold-500/40 text-gold-300 font-bold rounded-full hover:bg-gold-500/10 transition-all tracking-widest"
+                  className="px-8 py-3.5 bg-neutral-100 dark:bg-obsidian/50 border border-gold-500/40 text-gold-700 dark:text-gold-300 font-bold rounded-full hover:bg-gold-500/20 dark:hover:bg-gold-500/10 transition-all tracking-widest"
                 >
                   重新尝试感应
                 </button>
@@ -198,16 +229,16 @@ const App: React.FC = () => {
               </div>
               <button 
                 onClick={reset} 
-                className="px-8 py-3 bg-obsidian/40 border border-gold-500/30 hover:border-gold-500 hover:bg-gold-500/10 rounded-full text-gold-300 text-sm font-bold transition-all tracking-widest shrink-0 shadow-lg"
+                className="px-8 py-3 bg-neutral-100 dark:bg-obsidian/40 border border-gold-500/40 md:border-gold-500/30 hover:border-gold-500 hover:bg-gold-500/20 dark:hover:bg-gold-500/10 rounded-full text-gold-700 dark:text-gold-300 text-sm font-bold transition-all tracking-widest shrink-0 shadow-lg"
               >
                 谢卦 · 重开
               </button>
             </div>
             
             <div className="overflow-y-auto pr-4 space-y-8 custom-scrollbar pb-12 flex-1">
-              <div className="bg-obsidian/40 rounded-2xl p-6 md:p-8 border border-gold-500/10 shadow-inner">
-                <p className="text-gold-300/40 text-xs tracking-widest mb-3 uppercase">所问之事</p>
-                <div className="italic text-slate-200 font-serif text-lg leading-relaxed mix-blend-plus-lighter">
+              <div className="bg-neutral-100 dark:bg-obsidian/40 rounded-2xl p-6 md:p-8 border border-gold-500/20 md:border-gold-500/10 shadow-inner">
+                <p className="text-neutral-500 dark:text-gold-300/40 text-xs tracking-widest mb-3 uppercase">所问之事</p>
+                <div className="italic text-neutral-800 dark:text-slate-200 font-serif text-lg leading-relaxed mix-blend-normal dark:mix-blend-plus-lighter">
                   “{formData.question}”
                 </div>
               </div>
@@ -232,7 +263,7 @@ const App: React.FC = () => {
 
               <div className="mt-16 pt-8 border-t border-gold-500/10 flex flex-col items-center opacity-60">
                 <div className="w-1 px-8 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent mb-6"></div>
-                <p className="text-xs text-gold-300/50 font-serif tracking-[0.3em] uppercase">
+                <p className="text-xs text-neutral-500 dark:text-gold-300/50 font-serif tracking-[0.3em] uppercase">
                   天机不可尽泄 · 命运皆在己手
                 </p>
               </div>

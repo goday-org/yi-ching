@@ -108,7 +108,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
         <h2 className="text-3xl md:text-4xl font-bold gold-text-gradient font-serif tracking-widest">
           {throws.length === 6 ? "起卦完成" : YaoLabels[throws.length]}
         </h2>
-        <p className="text-gold-300/50 text-xs italic font-serif tracking-widest">通达天地 · 诚心感应</p>
+        <p className="text-neutral-500 dark:text-gold-300/50 text-xs italic font-serif tracking-widest">通达天地 · 诚心感应</p>
       </div>
 
       <div className="flex justify-center space-x-6 sm:space-x-10 h-32 items-center w-full">
@@ -122,7 +122,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
           <button
             onClick={handleThrow}
             disabled={isSpinning}
-            className={`w-full sm:w-72 py-4 rounded-xl gold-btn font-black text-obsidian tracking-[0.5em] shadow-xl text-lg 
+            className={`w-full sm:w-72 py-4 rounded-xl gold-btn font-black tracking-[0.5em] shadow-xl text-lg 
               ${isSpinning ? 'opacity-50 cursor-not-allowed transform-none' : ''}
             `}
           >
@@ -135,12 +135,12 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
             const t = throws[idx];
             return (
               <div key={idx} className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-4 w-full h-8 group">
-                <span className={`text-sm font-serif text-right font-bold transition-colors duration-500 ${t ? 'text-gold-500' : 'text-slate-800'}`}>
+                <span className={`text-sm font-serif text-right font-bold transition-colors duration-500 ${t ? 'text-gold-700 dark:text-gold-500' : 'text-neutral-400 dark:text-slate-800'}`}>
                   {label}
                 </span>
                 <div className="flex-1 flex items-center justify-center relative h-full">
                   {!t ? (
-                    <div className="w-full h-[1px] bg-slate-800 group-hover:bg-slate-700 transition-colors duration-300"></div>
+                    <div className="w-full h-[1px] bg-neutral-300 dark:bg-slate-800 group-hover:bg-neutral-400 dark:group-hover:bg-slate-700 transition-colors duration-300"></div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center animate-in zoom-in-95 duration-500">
                       {t.lineType === 'yang' && (
@@ -164,7 +164,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
                     </div>
                   )}
                 </div>
-                <div className="text-gold-300 font-serif font-bold text-center -ml-2 drop-shadow-md">
+                <div className="text-gold-700 dark:text-gold-300 font-serif font-bold text-center -ml-2 drop-shadow-md">
                   {t?.lineType === 'old_yang' ? '○' : t?.lineType === 'old_yin' ? '✕' : ''}
                 </div>
               </div>
