@@ -46,37 +46,24 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
     }, 1000);
   }, [throws, isSpinning, onComplete]);
 
-  const Coin = ({ isCharSide, spinning, idx, toss }: { isCharSide: boolean; spinning: boolean; idx: number; toss: number }) => {
-    // 基础旋转数按抛掷次数每轮累加 5 圈 (1800 度)，保证绝对变化
-    const baseRot = toss * 1800; 
-    // spinning 时硬币快速翻滚到达基础度数减去半圈的半空状态
-    // 非 spinning 时根据正反面落在一个确切度数（0或者180的倍数附加）
-    const targetDeg = spinning ? baseRot - 900 : baseRot + (isCharSide ? 0 : 180);
-
+  const Coin = ({ isCharSide, spinning, idx }: { isCharSide: boolean; spinning: boolean; idx: number }) => {
     return (
-      <div 
-        className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? '-translate-y-12 scale-110 drop-shadow-2xl' : 'translate-y-0 scale-100 drop-shadow-md'}`}
-        style={{ perspective: '1200px' }}
-      >
-        <div 
-          className="w-full h-full relative preserve-3d"
-          style={{ 
-            transform: `rotateX(${spinning ? 10 : 0}deg) rotateY(${targetDeg}deg)`,
-            transitionProperty: 'transform',
-            transitionDuration: spinning ? '500ms' : '1000ms',
-            transitionTimingFunction: spinning ? 'cubic-bezier(0.33, 1, 0.68, 1)' : 'cubic-bezier(0.25, 1, 0.5, 1)',
-            transitionDelay: spinning ? '0ms' : `${idx * 150}ms` 
-          }}
-        >
-          {/* 字样面 - 阴 */}
-          <div className="absolute inset-0 backface-hidden rounded-full border border-black dark:border-white bg-[#F5F5F0] dark:bg-[#080808] flex items-center justify-center">
-              <span className="font-serif text-lg font-bold text-black dark:text-white">易</span>
-          </div>
-          {/* 满文面 - 阳 */}
-          <div className="absolute inset-0 backface-hidden rounded-full border border-black dark:border-white bg-black dark:bg-white flex items-center justify-center" style={{ transform: 'rotateY(180deg)' }}>
-              <span className="font-serif text-lg font-bold text-[#F5F5F0] dark:text-[#080808]">象</span>
-          </div>
+      <div className={`relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center transition-all duration-[800ms] ${spinning ? 'scale-90 opacity-40' : 'scale-100 opacity-100'}`}>
+        {/* 背景圆环 */}
+        <div className={`absolute inset-0 rounded-full border transition-colors duration-1000 ${spinning ? 'border-transparent' : 'border-black/20 dark:border-white/20'}`}></div>
+        
+        {/* 内发光呼吸环 */}
+        <div className={`absolute inset-2 rounded-full border border-black/10 dark:border-white/10 transition-all duration-1000 ${spinning ? 'scale-110 opacity-100 animate-[spin_2s_linear_infinite]' : 'scale-100 opacity-0'}`}></div>
+
+        {/* 核心字样隐现 */}
+        <div className={`w-full h-full flex items-center justify-center transition-opacity duration-700 ${spinning ? 'opacity-0' : 'opacity-100'}`} style={{ transitionDelay: spinning ? '0ms' : `${idx * 200}ms` }}>
+            <span className={`font-serif text-3xl md:text-4xl transition-colors duration-[1500ms] ${isCharSide ? 'text-[#8B1D1D] dark:text-[#A32626] drop-shadow-lg' : 'text-[#111111] dark:text-[#EFEFEF]'}`}>
+              {isCharSide ? '易' : '象'}
+            </span>
         </div>
+        
+        {/* 掷币时的中心占位闪烁点 */}
+        <div className={`absolute w-1.5 h-1.5 rounded-full bg-black/40 dark:bg-white/40 transition-opacity duration-300 ${spinning ? 'opacity-100 animate-pulse' : 'opacity-0'}`} style={{ animationDelay: `${idx * 150}ms` }}></div>
       </div>
     );
   };
@@ -92,9 +79,9 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
         <p className="text-black/50 dark:text-white/50 text-xs font-serif tracking-[0.4em]">气凝太初 · 感应由心</p>
       </div>
 
-      <div className="flex justify-center space-x-6 sm:space-x-10 h-32 items-center w-full">
+      <div className="flex justify-center space-x-6 sm:space-x-12 h-32 items-center w-full">
         {currentCoins.map((isCharSide, idx) => (
-          <Coin key={idx} idx={idx} isCharSide={isCharSide === 1} spinning={isSpinning} toss={tossCount} />
+          <Coin key={idx} idx={idx} isCharSide={isCharSide === 1} spinning={isSpinning} />
         ))}
       </div>
 
@@ -155,8 +142,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
       </div>
 
       <style>{`
-        .preserve-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
+        /* Removed preserve-3d and backface-hidden for the new text animation */
       `}</style>
     </div>
   );
