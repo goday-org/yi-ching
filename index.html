@@ -10,6 +10,14 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/icon.svg" />
     <title>周易六爻算卦 - 天地玄机</title>
+    <!-- 在 CSS 及任何 DOM 加载前优先执行主题判断，避免闪烁 -->
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -86,6 +94,13 @@
             --noise-opacity: 0.04;
         }
 
+        /* 全局映射，防止 PWA 解析 body 前透出的白屏 */
+        html {
+            background-color: var(--bg-color);
+            overscroll-behavior-y: none; /* 彻底禁止 iOS 的果冻回弹和下拉刷新 */
+            -webkit-tap-highlight-color: transparent; /* 取消移动端点击背景高亮圈 */
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
@@ -93,7 +108,23 @@
             overflow-x: hidden;
             margin: 0;
             padding: 0;
+            
+            /* PWA Native 优化：防误触文本选择和安全区垫片 */
+            -webkit-touch-callout: none;
+            user-select: none;
+            -webkit-user-select: none;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            
             transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* 恢复输入框的文本可选择性，不可影响输入交互 */
+        input, textarea {
+            user-select: auto;
+            -webkit-user-select: auto;
         }
         
         /* 胶片噪点背景，替代原有的光晕星空，更具有艺术质感 */
@@ -179,15 +210,7 @@
 }
 </script>
 </head>
-<body class="min-h-screen transition-colors duration-500 light">
-    <script>
-        // Check for saved theme preference or system preference
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+<body class="min-h-screen">
     <div class="ambient-bg"></div>
     <div class="stars"></div>
     <div id="root"></div>
