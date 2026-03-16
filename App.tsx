@@ -90,7 +90,7 @@ const App: React.FC = () => {
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="absolute top-6 right-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gold-700 dark:text-gold-300 transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-gold-500/30"
+          className="absolute top-6 right-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black/60 dark:text-white/60 hover:text-[#111111] dark:hover:text-white transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30"
           aria-label="切换主题"
         >
           {isDark ? (
@@ -102,7 +102,7 @@ const App: React.FC = () => {
         {(step === AppStep.INPUT || step === AppStep.DIVINATION || step === AppStep.RESULT) && (
           <button 
             onClick={goBack}
-            className="absolute top-6 left-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-gold-700 dark:text-gold-300 transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-gold-500/30"
+            className="absolute top-6 left-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black/60 dark:text-white/60 hover:text-[#111111] dark:hover:text-white transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30"
             aria-label="返回"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -111,30 +111,30 @@ const App: React.FC = () => {
           </button>
         )}
 
-        {/* Ambient Glow Effects */}
-        <div className="absolute -top-[20%] -left-[10%] w-96 h-96 bg-gold-700/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute -bottom-[20%] -right-[10%] w-96 h-96 bg-sky-900/10 rounded-full blur-[100px] pointer-events-none"></div>
+        {/* 极简装饰：替换过去廉价的大光斑渐变 */}
+        <div className="absolute top-10 left-10 w-4 h-4 rounded-full border border-black/10 dark:border-white/10 hidden md:block"></div>
+        <div className="absolute bottom-10 right-10 w-4 h-4 rounded-full border border-black/10 dark:border-white/10 hidden md:block"></div>
 
         {step === AppStep.LANDING && (
-          <div className="flex flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-[1200ms] ease-out w-full h-full my-auto flex-1 pb-10">
+          <div className="flex flex-col items-center justify-center space-y-16 animate-in fade-in zoom-in-95 duration-[1200ms] ease-out w-full h-full my-auto flex-1 pb-10">
             <div className="text-center space-y-6">
-              <h1 className="text-5xl md:text-7xl font-black gold-text-gradient tracking-[0.4em] md:tracking-[0.6em] drop-shadow-2xl font-serif mt-4">
+              <h1 className="text-5xl md:text-7xl font-black tracking-[0.6em] font-serif mt-4 text-[#111111] dark:text-[#EFEFEF]">
                 周易算卦
               </h1>
-              <div className="flex items-center justify-center gap-4 text-gold-500/60 tracking-[0.3em] font-light text-xs md:text-sm uppercase">
-                <span className="h-px w-8 bg-gold-700/30"></span>
-                <p>AI 深度易理驱动</p>
-                <span className="h-px w-8 bg-gold-700/30"></span>
+              <div className="flex items-center justify-center gap-6 text-black/50 dark:text-white/50 tracking-[0.4em] font-light text-xs md:text-sm uppercase">
+                <span className="h-px w-12 bg-black/10 dark:bg-white/10"></span>
+                <p>大道至简 · 意念合一</p>
+                <span className="h-px w-12 bg-black/10 dark:bg-white/10"></span>
               </div>
             </div>
             
-            <div onClick={startDivination} className="cursor-pointer transform hover:scale-[1.05] transition-all duration-700 hover:drop-shadow-[0_0_40px_rgba(212,175,55,0.4)]">
+            <div onClick={startDivination} className="cursor-pointer transform transition-all duration-1000">
               <Compass />
             </div>
             
             <button
               onClick={startDivination}
-              className="px-14 py-4 gold-btn rounded-full text-obsidian font-bold text-lg tracking-[0.4em] uppercase hover:scale-[1.03]"
+              className="px-16 py-4 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 font-bold text-sm tracking-[0.5em] uppercase"
             >
               感应天机
             </button>
@@ -142,10 +142,10 @@ const App: React.FC = () => {
         )}
 
         {step === AppStep.INPUT && (
-          <form onSubmit={handleInputConfirm} className="w-full max-w-lg flex flex-col space-y-8 animate-in slide-in-from-bottom-8 fade-in duration-1000 ease-out pt-16 flex-1">
-            <div className="text-center space-y-4 mb-6">
-              <h2 className="text-3xl md:text-5xl font-bold gold-text-gradient font-serif tracking-[0.2em]">诚心叩问</h2>
-              <p className="text-neutral-600 dark:text-gold-300/60 text-sm font-light tracking-[0.3em]">心诚则灵 · 意念合一</p>
+          <form onSubmit={handleInputConfirm} className="w-full max-w-lg flex flex-col space-y-10 animate-in slide-in-from-bottom-8 fade-in duration-1000 ease-out pt-16 flex-1">
+            <div className="text-center space-y-6 mb-8">
+              <h2 className="text-3xl md:text-5xl font-black font-serif tracking-[0.2em] text-[#111111] dark:text-[#EFEFEF]">诚心叩问</h2>
+              <p className="text-black/50 dark:text-white/50 text-sm font-light tracking-[0.3em]">摒除杂念 · 意象自现</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -154,10 +154,10 @@ const App: React.FC = () => {
                   key={type}
                   type="button"
                   onClick={() => setFormData({ ...formData, type: type as DivinationType })}
-                  className={`py-3.5 rounded-xl border transition-all duration-300 text-sm font-serif tracking-widest ${
+                  className={`py-3.5 border transition-all duration-300 text-sm font-serif tracking-widest ${
                     formData.type === type 
-                      ? 'bg-gold-500/20 dark:bg-gold-500/15 border-gold-500 text-gold-700 dark:text-gold-300 shadow-[0_0_20px_rgba(212,175,55,0.2)] scale-105' 
-                      : 'bg-black/5 dark:bg-obsidian/30 text-neutral-600 dark:text-slate-400 border-neutral-300/50 dark:border-white/5 hover:border-gold-500/50 dark:hover:border-gold-500/30 hover:text-gold-700 dark:hover:text-gold-100 hover:bg-gold-500/10 dark:hover:bg-gold-500/5'
+                      ? 'bg-[#111111] text-[#F5F5F0] border-[#111111] dark:bg-[#EFEFEF] dark:text-[#080808] dark:border-[#EFEFEF] shadow-lg' 
+                      : 'bg-transparent text-black/60 dark:text-white/60 border-black/10 dark:border-white/10 hover:border-black/50 dark:hover:border-white/50'
                   }`}
                 >
                   {type}
@@ -168,16 +168,16 @@ const App: React.FC = () => {
             <textarea
               value={formData.question}
               onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-              placeholder="请详述您的困惑（如：近期事业变动，应当如何抉择？）"
-              className="w-full h-48 premium-input rounded-2xl p-6 font-serif leading-relaxed text-lg resize-none placeholder:text-neutral-400 dark:placeholder:text-slate-500"
+              placeholder="请详述您的困惑（如：近期事业路口的抉择）"
+              className="w-full h-48 premium-input p-6 font-serif leading-relaxed text-lg resize-none placeholder:text-black/30 dark:placeholder:text-white/30"
               required
             />
 
             <button
               type="submit"
-              className="w-full py-4 gold-btn rounded-xl font-bold text-obsidian text-lg tracking-[0.3em] mt-6 hover:scale-[1.02] shadow-xl"
+              className="w-full py-4 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 font-bold text-sm tracking-[0.5em] uppercase mt-6"
             >
-              确认 · 进入起卦
+              起 卦
             </button>
           </form>
         )}
@@ -188,29 +188,26 @@ const App: React.FC = () => {
               <CoinThrower onComplete={handleDivinationComplete} />
             ) : loading ? (
               <div className="flex flex-col items-center justify-center space-y-10 py-24 text-center">
-                <div className="relative w-32 h-32 flex items-center justify-center">
-                  <div className="absolute inset-0 border-[1px] border-gold-500/20 rounded-full"></div>
-                  <div className="absolute inset-2 border-[1px] border-gold-500/40 rounded-full border-t-transparent animate-spin-slow"></div>
-                  <div className="absolute inset-4 border-[2px] border-gold-500 rounded-full border-b-transparent animate-spin"></div>
-                  <div className="absolute inset-0 rounded-full bg-gold-500/5 blur-xl animate-pulse-glow"></div>
-                  <span className="text-gold-300 font-serif text-2xl animate-pulse">易</span>
+                <div className="relative w-24 h-24 flex items-center justify-center">
+                  <div className="absolute inset-0 border border-black/20 dark:border-white/20 animate-spin-slow"></div>
+                  <div className="absolute inset-2 border border-black/60 dark:border-white/60 animate-[spin_3s_linear_infinite_reverse]"></div>
+                  <span className="text-[#8B1D1D] dark:text-[#A32626] font-serif text-2xl">推</span>
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-xl md:text-2xl font-bold gold-text-gradient font-serif tracking-[0.3em]">正在推演天机</h3>
-                  <p className="text-gold-300/40 italic font-serif text-sm tracking-widest">交汇阴阳 · 洞悉因果...</p>
+                  <h3 className="text-xl md:text-2xl font-bold font-serif tracking-[0.3em] text-[#111111] dark:text-[#EFEFEF]">静候天机</h3>
                 </div>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center space-y-8 py-20 px-4 text-center max-w-md">
-                <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 flex items-center justify-center text-red-600 dark:text-red-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <div className="w-16 h-16 border border-[#8B1D1D] flex items-center justify-center text-[#8B1D1D]">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </div>
-                <p className="text-red-800 dark:text-red-200/70 font-serif leading-relaxed text-lg">{error}</p>
+                <p className="text-[#8B1D1D] font-serif leading-relaxed text-lg">{error}</p>
                 <button 
                   onClick={() => divinationData && handleDivinationComplete(divinationData.throws)}
-                  className="px-8 py-3.5 bg-neutral-100 dark:bg-obsidian/50 border border-gold-500/40 text-gold-700 dark:text-gold-300 font-bold rounded-full hover:bg-gold-500/20 dark:hover:bg-gold-500/10 transition-all tracking-widest"
+                  className="px-8 py-3.5 border border-[#111111] dark:border-[#EFEFEF] font-bold text-sm tracking-widest hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors"
                 >
-                  重新尝试感应
+                  重新尝试
                 </button>
               </div>
             ) : null}
@@ -219,26 +216,25 @@ const App: React.FC = () => {
 
         {step === AppStep.RESULT && (
           <div className="w-full flex flex-col h-full animate-in fade-in zoom-in-95 duration-1000 ease-out mt-12 md:mt-4">
-            <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-gold-500/20 pb-6 mb-8 gap-6 md:gap-0">
+            <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-black/10 dark:border-white/10 pb-6 mb-8 gap-6 md:gap-0">
               <div>
-                <p className="text-gold-300/60 text-xs tracking-[0.4em] uppercase mb-2 font-light">得卦</p>
-                <h2 className="text-5xl md:text-6xl font-black gold-text-gradient font-serif tracking-[0.2em] relative inline-block">
+                <p className="text-[#8B1D1D] dark:text-[#A32626] text-xs tracking-[0.4em] uppercase mb-2 font-bold">得 卦</p>
+                <h2 className="text-5xl md:text-6xl font-black font-serif tracking-[0.2em] relative inline-block text-[#111111] dark:text-[#EFEFEF]">
                   {getOriginalHexName()}
-                  <span className="absolute -inset-4 bg-gold-500/10 blur-2xl -z-10 rounded-full pointer-events-none"></span>
                 </h2>
               </div>
               <button 
                 onClick={reset} 
-                className="px-8 py-3.5 bg-neutral-100 dark:bg-obsidian/40 border border-gold-500/40 md:border-gold-500/30 hover:border-gold-500 hover:bg-gold-500/20 dark:hover:bg-gold-500/10 rounded-full text-gold-700 dark:text-gold-300 text-sm font-bold transition-all duration-300 tracking-widest shrink-0 shadow-lg hover:scale-105"
+                className="px-8 py-3 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 text-xs font-bold tracking-[0.5em] shrink-0"
               >
-                谢卦 · 重开
+                谢 卦
               </button>
             </div>
             
             <div className="overflow-y-auto pr-4 space-y-8 custom-scrollbar pb-12 flex-1">
-              <div className="bg-neutral-100 dark:bg-obsidian/40 rounded-2xl p-6 md:p-8 border border-gold-500/20 md:border-gold-500/10 shadow-inner">
-                <p className="text-neutral-500 dark:text-gold-300/40 text-xs tracking-widest mb-3 uppercase">所问之事</p>
-                <div className="italic text-neutral-800 dark:text-slate-200 font-serif text-lg leading-relaxed mix-blend-normal dark:mix-blend-plus-lighter">
+              <div className="bg-black/5 dark:bg-white/5 p-8 border border-black/10 dark:border-white/10">
+                <p className="text-black/50 dark:text-white/50 text-xs tracking-widest mb-4 font-bold border-b border-black/10 dark:border-white/10 pb-2 inline-block">所问之事</p>
+                <div className="italic text-[#111111] dark:text-[#EFEFEF] font-serif text-lg leading-relaxed">
                   “{formData.question}”
                 </div>
               </div>
@@ -250,7 +246,7 @@ const App: React.FC = () => {
                   if (!cleanLine) return <div key={i} className="h-4"></div>;
                   
                   return isHeader ? (
-                    <h3 key={i} className="text-xl md:text-2xl font-serif text-gold-300 font-bold mb-4 mt-8 border-l-4 border-gold-500 pl-4 py-1 bg-gold-500/5 pr-4 rounded-r-lg inline-block">
+                    <h3 key={i} className="text-xl md:text-2xl font-serif font-bold mb-4 mt-10">
                       {cleanLine}
                     </h3>
                   ) : (
@@ -261,10 +257,10 @@ const App: React.FC = () => {
                 })}
               </div>
 
-              <div className="mt-16 pt-8 border-t border-gold-500/10 flex flex-col items-center opacity-60">
-                <div className="w-1 px-8 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent mb-6"></div>
-                <p className="text-xs text-neutral-500 dark:text-gold-300/50 font-serif tracking-[0.3em] uppercase">
-                  天机不可尽泄 · 命运皆在己手
+              <div className="mt-16 pt-8 border-t border-black/10 dark:border-white/10 flex flex-col items-center">
+                <div className="w-1 px-8 h-px bg-[#8B1D1D] mb-6"></div>
+                <p className="text-xs text-black/40 dark:text-white/40 font-serif tracking-[0.4em] uppercase">
+                  无往不复 · 天道忌盈
                 </p>
               </div>
             </div>
@@ -275,8 +271,8 @@ const App: React.FC = () => {
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.4); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139, 29, 29, 0.4); }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139, 29, 29, 0.8); }
       `}</style>
     </div>
   );
