@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "Qwen/Qwen3-32B",
+        model: "deepseek-ai/DeepSeek-V3.2",
         messages: [
           { role: "system", content: "你是一位专业的易经占卜师，语言庄重、玄妙且富有洞察力。" },
           { role: "user", content: prompt }

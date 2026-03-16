@@ -15,41 +15,46 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
     setIsSpinning(true);
     
     setTimeout(() => {
-      // 1 表示“乾隆通宝”字样面 (Yin, 2点), 0 表示满文面 (Yang, 3点)
+      // 1 表示“阴”字样面, 0 表示“阳”象面
       const newCoins = [
         Math.random() > 0.5 ? 1 : 0,
         Math.random() > 0.5 ? 1 : 0,
         Math.random() > 0.5 ? 1 : 0
       ];
-      setCurrentCoins(newCoins);
+      // 重要修复：投掷后先重置硬币状态，以便触发 CSS 动画
+      setCurrentCoins([-1, -1, -1]);
       
-      const charCount = newCoins.reduce((a, b) => a + b, 0); // 计算“字”的数量
-      let lineType: ThrowResult['lineType'] = 'yang';
-      
-      // 易理逻辑修正：
-      // 3个字 = 2+2+2 = 6点 -> 老阴 (Old Yin)
-      // 2个字 = 2+2+3 = 7点 -> 少阳 (Yang)
-      // 1个字 = 2+3+3 = 8点 -> 少阴 (Yin)
-      // 0个字 = 3+3+3 = 9点 -> 老阳 (Old Yang)
-      if (charCount === 3) lineType = 'old_yin';
-      else if (charCount === 2) lineType = 'yang';
-      else if (charCount === 1) lineType = 'yin';
-      else if (charCount === 0) lineType = 'old_yang';
+      setTimeout(() => {
+          setCurrentCoins(newCoins);
+          
+          const charCount = newCoins.reduce((a, b) => a + b, 0); // 计算“字”的数量
+          let lineType: ThrowResult['lineType'] = 'yang';
+          
+          // 易理逻辑修正：
+          // 3个字 = 2+2+2 = 6点 -> 老阴 (Old Yin)
+          // 2个字 = 2+2+3 = 7点 -> 少阳 (Yang)
+          // 1个字 = 2+3+3 = 8点 -> 少阴 (Yin)
+          // 0个字 = 3+3+3 = 9点 -> 老阳 (Old Yang)
+          if (charCount === 3) lineType = 'old_yin';
+          else if (charCount === 2) lineType = 'yang';
+          else if (charCount === 1) lineType = 'yin';
+          else if (charCount === 0) lineType = 'old_yang';
 
-      const newResult: ThrowResult = { heads: charCount, lineType };
-      const updatedThrows = [...throws, newResult];
-      setThrows(updatedThrows);
-      setIsSpinning(false);
+          const newResult: ThrowResult = { heads: charCount, lineType };
+          const updatedThrows = [...throws, newResult];
+          setThrows(updatedThrows);
+          setIsSpinning(false);
 
-      if (updatedThrows.length === 6) {
-        setTimeout(() => onComplete(updatedThrows), 1200);
-      }
+          if (updatedThrows.length === 6) {
+            setTimeout(() => onComplete(updatedThrows), 1200);
+          }
+      }, 50); // 给半秒 DOM 重排间隙
     }, 1000);
   }, [throws, isSpinning, onComplete]);
 
   const Coin = ({ isCharSide, spinning, idx }: { isCharSide: boolean; spinning: boolean; idx: number }) => (
     <div 
-      className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? 'animate-bounce' : 'scale-100'}`}
+      className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? 'animate-bounce -translate-y-10' : 'scale-100 translate-y-0'}`}
       style={{ perspective: '1200px' }}
     >
       <div 
@@ -81,7 +86,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
 
       <div className="flex justify-center space-x-6 sm:space-x-10 h-32 items-center w-full">
         {currentCoins.map((isCharSide, idx) => (
-          <Coin key={idx} idx={idx} isCharSide={!!isCharSide} spinning={isSpinning} />
+          <Coin key={idx} idx={idx} isCharSide={isCharSide === 1} spinning={isSpinning || isCharSide === -1} />
         ))}
       </div>
 

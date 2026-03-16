@@ -72,8 +72,14 @@ const App: React.FC = () => {
   };
 
   const goBack = () => {
-    if (step === AppStep.INPUT) setStep(AppStep.LANDING);
-    else if (step === AppStep.DIVINATION) setStep(AppStep.INPUT);
+    if (step === AppStep.INPUT) {
+      setStep(AppStep.LANDING);
+    } else if (step === AppStep.DIVINATION) {
+      setStep(AppStep.INPUT);
+      setDivinationData(null);
+    } else if (step === AppStep.RESULT) {
+      reset();
+    }
     setError(null);
   };
 
@@ -116,15 +122,15 @@ const App: React.FC = () => {
         <div className="absolute bottom-10 right-10 w-4 h-4 rounded-full border border-black/10 dark:border-white/10 hidden md:block"></div>
 
         {step === AppStep.LANDING && (
-          <div className="flex flex-col items-center justify-center space-y-16 animate-in fade-in zoom-in-95 duration-[1200ms] ease-out w-full h-full my-auto flex-1 pb-10">
-            <div className="text-center space-y-6">
-              <h1 className="text-5xl md:text-7xl font-black tracking-[0.6em] font-serif mt-4 text-[#111111] dark:text-[#EFEFEF]">
+          <div className="flex flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-[1200ms] ease-out w-full h-full my-auto flex-1 pb-10">
+            <div className="text-center space-y-4 md:space-y-6">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[0.4em] md:tracking-[0.6em] font-serif mt-4 text-[#111111] dark:text-[#EFEFEF]">
                 周易算卦
               </h1>
-              <div className="flex items-center justify-center gap-6 text-black/50 dark:text-white/50 tracking-[0.4em] font-light text-xs md:text-sm uppercase">
-                <span className="h-px w-12 bg-black/10 dark:bg-white/10"></span>
+              <div className="flex items-center justify-center gap-3 sm:gap-6 text-black/50 dark:text-white/50 tracking-[0.2em] sm:tracking-[0.4em] font-light text-[10px] sm:text-xs md:text-sm uppercase px-4 whitespace-nowrap">
+                <span className="h-px w-6 sm:w-12 bg-black/10 dark:bg-white/10 hidden sm:block"></span>
                 <p>大道至简 · 意念合一</p>
-                <span className="h-px w-12 bg-black/10 dark:bg-white/10"></span>
+                <span className="h-px w-6 sm:w-12 bg-black/10 dark:bg-white/10 hidden sm:block"></span>
               </div>
             </div>
             
