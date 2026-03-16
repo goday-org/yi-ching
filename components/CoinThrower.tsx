@@ -56,9 +56,12 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
         style={{ perspective: '1200px' }}
       >
         <div 
-          className={`w-full h-full relative preserve-3d transition-transform cubic-bezier(0.16, 1, 0.3, 1) ${spinning ? 'duration-[1000ms]' : 'duration-[1200ms]'}`}
+          className="w-full h-full relative preserve-3d"
           style={{ 
             transform: `rotateY(${targetDeg}deg) scale(${spinning ? 1.1 : 1})`,
+            transitionProperty: 'transform',
+            transitionDuration: spinning ? '1000ms' : '1200ms',
+            transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
             transitionDelay: spinning ? '0ms' : `${idx * 150}ms` 
           }}
         >
