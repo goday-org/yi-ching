@@ -9,61 +9,65 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
   const [throws, setThrows] = useState<ThrowResult[]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentCoins, setCurrentCoins] = useState<number[]>([1, 1, 1]);
-  const [tossCount, setTossCount] = useState<number>(0);
 
   const handleThrow = useCallback(() => {
     if (throws.length >= 6 || isSpinning) return;
     setIsSpinning(true);
-    setTossCount(c => c + 1);
     
-    setTimeout(() => {
-      // 1 表示“阴”字样面, 0 表示“阳”象面
-      const newCoins = [
-        Math.random() > 0.5 ? 1 : 0,
-        Math.random() > 0.5 ? 1 : 0,
-        Math.random() > 0.5 ? 1 : 0
-      ];
-      
-      setCurrentCoins(newCoins);
-      
-      const charCount = newCoins.reduce((a, b) => a + b, 0); // 计算“字”的数量
-      let lineType: ThrowResult['lineType'] = 'yang';
-      
-      // 易理逻辑修正：
-      if (charCount === 3) lineType = 'old_yin';
-      else if (charCount === 2) lineType = 'yang';
-      else if (charCount === 1) lineType = 'yin';
-      else if (charCount === 0) lineType = 'old_yang';
+    // 立即计算新的正反面，但由 css 动画接管表现，不会穿帮
+    const newCoins = [
+      Math.random() > 0.5 ? 1 : 0,
+      Math.random() > 0.5 ? 1 : 0,
+      Math.random() > 0.5 ? 1 : 0
+    ];
+    setCurrentCoins(newCoins);
+    
+    const charCount = newCoins.reduce((a, b) => a + b, 0); // 计算“字”的数量
+    let lineType: ThrowResult['lineType'] = 'yang';
+    
+    // 易理逻辑修正：
+    if (charCount === 3) lineType = 'old_yin';
+    else if (charCount === 2) lineType = 'yang';
+    else if (charCount === 1) lineType = 'yin';
+    else if (charCount === 0) lineType = 'old_yang';
 
-      const newResult: ThrowResult = { heads: charCount, lineType };
-      const updatedThrows = [...throws, newResult];
+    const newResult: ThrowResult = { heads: charCount, lineType };
+    const updatedThrows = [...throws, newResult];
+    
+    // 等待 1.2 秒抛币动画结束后真正落地计算数据
+    setTimeout(() => {
       setThrows(updatedThrows);
       setIsSpinning(false);
 
       if (updatedThrows.length === 6) {
-        setTimeout(() => onComplete(updatedThrows), 1200);
+        setTimeout(() => onComplete(updatedThrows), 1000);
       }
-    }, 1000);
+    }, 1200);
   }, [throws, isSpinning, onComplete]);
 
   const Coin = ({ isCharSide, spinning, idx }: { isCharSide: boolean; spinning: boolean; idx: number }) => {
     return (
-      <div className={`relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center transition-all duration-[800ms] ${spinning ? 'scale-90 opacity-40' : 'scale-100 opacity-100'}`}>
-        {/* 背景圆环 */}
-        <div className={`absolute inset-0 rounded-full border transition-colors duration-1000 ${spinning ? 'border-transparent' : 'border-black/20 dark:border-white/20'}`}></div>
-        
-        {/* 内发光呼吸环 */}
-        <div className={`absolute inset-2 rounded-full border border-black/10 dark:border-white/10 transition-all duration-1000 ${spinning ? 'scale-110 opacity-100 animate-[spin_2s_linear_infinite]' : 'scale-100 opacity-0'}`}></div>
-
-        {/* 核心字样隐现 */}
-        <div className={`w-full h-full flex items-center justify-center transition-opacity duration-700 ${spinning ? 'opacity-0' : 'opacity-100'}`} style={{ transitionDelay: spinning ? '0ms' : `${idx * 200}ms` }}>
-            <span className={`font-serif text-3xl md:text-4xl transition-colors duration-[1500ms] ${isCharSide ? 'text-[#8B1D1D] dark:text-[#A32626] drop-shadow-lg' : 'text-[#111111] dark:text-[#EFEFEF]'}`}>
-              {isCharSide ? '易' : '象'}
-            </span>
+      <div 
+        className="relative w-16 h-16 sm:w-20 sm:h-20"
+        style={{ perspective: '1200px' }}
+      >
+        <div 
+          className={`w-full h-full relative preserve-3d ${spinning ? 'animate-toss' : ''}`}
+          style={{ 
+            animationDelay: `${idx * 150}ms`,
+            transform: !spinning ? `rotateY(${isCharSide ? 0 : 180}deg)` : undefined,
+            transition: !spinning ? 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)' : 'none'
+          }}
+        >
+          {/* 字样面 - 阴 */}
+          <div className="absolute inset-0 backface-hidden rounded-full border border-black/80 dark:border-white/80 bg-[#F5F5F0] dark:bg-[#080808] flex items-center justify-center shadow-[inset_0px_0px_10px_rgba(0,0,0,0.1)] dark:shadow-[inset_0px_0px_10px_rgba(255,255,255,0.05)]">
+              <span className="font-serif text-2xl font-bold text-black dark:text-white drop-shadow-sm">易</span>
+          </div>
+          {/* 满文面 - 阳 (翻转180度) */}
+          <div className="absolute inset-0 backface-hidden rounded-full border border-black/80 dark:border-white/80 bg-black dark:bg-white flex items-center justify-center shadow-[inset_0px_0px_10px_rgba(255,255,255,0.1)] dark:shadow-[inset_0px_0px_10px_rgba(0,0,0,0.1)]" style={{ transform: 'rotateY(180deg)' }}>
+              <span className="font-serif text-2xl font-bold text-[#F5F5F0] dark:text-[#080808] drop-shadow-sm">象</span>
+          </div>
         </div>
-        
-        {/* 掷币时的中心占位闪烁点 */}
-        <div className={`absolute w-1.5 h-1.5 rounded-full bg-black/40 dark:bg-white/40 transition-opacity duration-300 ${spinning ? 'opacity-100 animate-pulse' : 'opacity-0'}`} style={{ animationDelay: `${idx * 150}ms` }}></div>
       </div>
     );
   };
@@ -142,7 +146,22 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
       </div>
 
       <style>{`
-        /* Removed preserve-3d and backface-hidden for the new text animation */
+        @keyframes coinToss {
+          0% {
+            transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+          }
+          50% {
+            transform: translateY(-160px) rotateX(1080deg) rotateY(180deg) scale(1.1);
+          }
+          100% {
+            transform: translateY(0) rotateX(2160deg) rotateY(360deg) scale(1);
+          }
+        }
+        .animate-toss {
+          animation: coinToss 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
       `}</style>
     </div>
   );
