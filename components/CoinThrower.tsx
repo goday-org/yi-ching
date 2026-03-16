@@ -47,21 +47,24 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
   }, [throws, isSpinning, onComplete]);
 
   const Coin = ({ isCharSide, spinning, idx, toss }: { isCharSide: boolean; spinning: boolean; idx: number; toss: number }) => {
-    const baseRot = toss * 1440; 
-    const targetDeg = spinning ? baseRot - 540 : baseRot + (isCharSide ? 0 : 180);
+    // 基础旋转数按抛掷次数每轮累加 5 圈 (1800 度)，保证绝对变化
+    const baseRot = toss * 1800; 
+    // spinning 时硬币快速翻滚到达基础度数减去半圈的半空状态
+    // 非 spinning 时根据正反面落在一个确切度数（0或者180的倍数附加）
+    const targetDeg = spinning ? baseRot - 900 : baseRot + (isCharSide ? 0 : 180);
 
     return (
       <div 
-        className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? 'animate-bounce -translate-y-10' : 'scale-100 translate-y-0'}`}
+        className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? '-translate-y-12 scale-110 drop-shadow-2xl' : 'translate-y-0 scale-100 drop-shadow-md'}`}
         style={{ perspective: '1200px' }}
       >
         <div 
           className="w-full h-full relative preserve-3d"
           style={{ 
-            transform: `rotateY(${targetDeg}deg) scale(${spinning ? 1.1 : 1})`,
+            transform: `rotateX(${spinning ? 10 : 0}deg) rotateY(${targetDeg}deg)`,
             transitionProperty: 'transform',
-            transitionDuration: spinning ? '1000ms' : '1200ms',
-            transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            transitionDuration: spinning ? '500ms' : '1000ms',
+            transitionTimingFunction: spinning ? 'cubic-bezier(0.33, 1, 0.68, 1)' : 'cubic-bezier(0.25, 1, 0.5, 1)',
             transitionDelay: spinning ? '0ms' : `${idx * 150}ms` 
           }}
         >
