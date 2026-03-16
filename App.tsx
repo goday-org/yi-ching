@@ -3,6 +3,7 @@ import { AppStep, DivinationType, DivinationData, ThrowResult } from './types';
 import { DIVINATION_TYPES, HEXAGRAM_NAMES } from './constants';
 import Compass from './components/Compass';
 import CoinThrower from './components/CoinThrower';
+import PwaPrompt from './components/PwaPrompt';
 import { interpretDivination } from './services/gemini';
 
 const App: React.FC = () => {
@@ -280,6 +281,7 @@ const App: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139, 29, 29, 0.4); }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139, 29, 29, 0.8); }
       `}</style>
+      <PwaPrompt />
     </div>
   );
 };
