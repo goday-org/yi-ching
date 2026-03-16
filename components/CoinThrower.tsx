@@ -9,10 +9,12 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
   const [throws, setThrows] = useState<ThrowResult[]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentCoins, setCurrentCoins] = useState<number[]>([1, 1, 1]);
+  const [tossCount, setTossCount] = useState<number>(0);
 
   const handleThrow = useCallback(() => {
     if (throws.length >= 6 || isSpinning) return;
     setIsSpinning(true);
+    setTossCount(c => c + 1);
     
     setTimeout(() => {
       // 1 表示“阴”字样面, 0 表示“阳”象面
@@ -21,57 +23,57 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
         Math.random() > 0.5 ? 1 : 0,
         Math.random() > 0.5 ? 1 : 0
       ];
-      // 重要修复：投掷后先重置硬币状态，以便触发 CSS 动画
-      setCurrentCoins([-1, -1, -1]);
       
-      setTimeout(() => {
-          setCurrentCoins(newCoins);
-          
-          const charCount = newCoins.reduce((a, b) => a + b, 0); // 计算“字”的数量
-          let lineType: ThrowResult['lineType'] = 'yang';
-          
-          // 易理逻辑修正：
-          // 3个字 = 2+2+2 = 6点 -> 老阴 (Old Yin)
-          // 2个字 = 2+2+3 = 7点 -> 少阳 (Yang)
-          // 1个字 = 2+3+3 = 8点 -> 少阴 (Yin)
-          // 0个字 = 3+3+3 = 9点 -> 老阳 (Old Yang)
-          if (charCount === 3) lineType = 'old_yin';
-          else if (charCount === 2) lineType = 'yang';
-          else if (charCount === 1) lineType = 'yin';
-          else if (charCount === 0) lineType = 'old_yang';
+      setCurrentCoins(newCoins);
+      
+      const charCount = newCoins.reduce((a, b) => a + b, 0); // 计算“字”的数量
+      let lineType: ThrowResult['lineType'] = 'yang';
+      
+      // 易理逻辑修正：
+      if (charCount === 3) lineType = 'old_yin';
+      else if (charCount === 2) lineType = 'yang';
+      else if (charCount === 1) lineType = 'yin';
+      else if (charCount === 0) lineType = 'old_yang';
 
-          const newResult: ThrowResult = { heads: charCount, lineType };
-          const updatedThrows = [...throws, newResult];
-          setThrows(updatedThrows);
-          setIsSpinning(false);
+      const newResult: ThrowResult = { heads: charCount, lineType };
+      const updatedThrows = [...throws, newResult];
+      setThrows(updatedThrows);
+      setIsSpinning(false);
 
-          if (updatedThrows.length === 6) {
-            setTimeout(() => onComplete(updatedThrows), 1200);
-          }
-      }, 50); // 给半秒 DOM 重排间隙
+      if (updatedThrows.length === 6) {
+        setTimeout(() => onComplete(updatedThrows), 1200);
+      }
     }, 1000);
   }, [throws, isSpinning, onComplete]);
 
-  const Coin = ({ isCharSide, spinning, idx }: { isCharSide: boolean; spinning: boolean; idx: number }) => (
-    <div 
-      className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? 'animate-bounce -translate-y-10' : 'scale-100 translate-y-0'}`}
-      style={{ perspective: '1200px' }}
-    >
+  const Coin = ({ isCharSide, spinning, idx, toss }: { isCharSide: boolean; spinning: boolean; idx: number; toss: number }) => {
+    const baseRot = toss * 1440; 
+    const targetDeg = spinning ? baseRot - 540 : baseRot + (isCharSide ? 0 : 180);
+
+    return (
       <div 
-        className={`w-full h-full relative preserve-3d transition-transform duration-[1200ms] cubic-bezier(0.16, 1, 0.3, 1) ${spinning ? '[transform:rotateY(1440deg)_scale(1.1)]' : (isCharSide ? '[transform:rotateY(0deg)_scale(1)]' : '[transform:rotateY(180deg)_scale(1)]')}`}
-        style={{ transitionDelay: spinning ? '0ms' : `${idx * 150}ms` }}
+        className={`relative w-16 h-16 sm:w-20 sm:h-20 transition-all duration-1000 ${spinning ? 'animate-bounce -translate-y-10' : 'scale-100 translate-y-0'}`}
+        style={{ perspective: '1200px' }}
       >
-        {/* 字样面 - 阴 */}
-        <div className="absolute inset-0 backface-hidden rounded-full border border-black dark:border-white bg-[#F5F5F0] dark:bg-[#080808] flex items-center justify-center">
-            <span className="font-serif text-lg font-bold text-black dark:text-white">易</span>
-        </div>
-        {/* 满文面 - 阳 */}
-        <div className="absolute inset-0 backface-hidden [transform:rotateY(180deg)] rounded-full border border-black dark:border-white bg-black dark:bg-white flex items-center justify-center">
-            <span className="font-serif text-lg font-bold text-[#F5F5F0] dark:text-[#080808]">象</span>
+        <div 
+          className={`w-full h-full relative preserve-3d transition-transform cubic-bezier(0.16, 1, 0.3, 1) ${spinning ? 'duration-[1000ms]' : 'duration-[1200ms]'}`}
+          style={{ 
+            transform: `rotateY(${targetDeg}deg) scale(${spinning ? 1.1 : 1})`,
+            transitionDelay: spinning ? '0ms' : `${idx * 150}ms` 
+          }}
+        >
+          {/* 字样面 - 阴 */}
+          <div className="absolute inset-0 backface-hidden rounded-full border border-black dark:border-white bg-[#F5F5F0] dark:bg-[#080808] flex items-center justify-center">
+              <span className="font-serif text-lg font-bold text-black dark:text-white">易</span>
+          </div>
+          {/* 满文面 - 阳 */}
+          <div className="absolute inset-0 backface-hidden rounded-full border border-black dark:border-white bg-black dark:bg-white flex items-center justify-center" style={{ transform: 'rotateY(180deg)' }}>
+              <span className="font-serif text-lg font-bold text-[#F5F5F0] dark:text-[#080808]">象</span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const YaoLabels = ["初爻", "二爻", "三爻", "四爻", "五爻", "上爻"];
 
@@ -86,7 +88,7 @@ const CoinThrower: React.FC<CoinThrowerProps> = ({ onComplete }) => {
 
       <div className="flex justify-center space-x-6 sm:space-x-10 h-32 items-center w-full">
         {currentCoins.map((isCharSide, idx) => (
-          <Coin key={idx} idx={idx} isCharSide={isCharSide === 1} spinning={isSpinning || isCharSide === -1} />
+          <Coin key={idx} idx={idx} isCharSide={isCharSide === 1} spinning={isSpinning} toss={tossCount} />
         ))}
       </div>
 

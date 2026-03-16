@@ -10,28 +10,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 优先使用 VERCEL 设置的 DEEPSEEK_API_KEY，如果没有则兼容读取原来 VITE 环境变量名（部署时如果配了也会存放在 process.env 中）
-    const apiKey = process.env.DEEPSEEK_API_KEY || process.env.VITE_API_KEY;
+    // 优先使用 VERCEL 设置的 ARK 环境变量（火山引擎）
+    const apiKey = process.env.ARK_API_KEY || process.env.VITE_API_KEY;
 
     if (!apiKey) {
       return res.status(500).json({ error: '服务端未配置 API Key' });
     }
 
-    const response = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+    // 火山方舟（Volcengine Ark）兼容 OpenAI 接口风格
+    const response = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "deepseek-ai/DeepSeek-V3.2",
+        // 需在对应的 VERCEL 环境变量中设置火山引擎具体的 Endpoint ID 或者对应的模型名称
+        model: process.env.ARK_MODEL_ID || "doubao-pro-32k",
         messages: [
           { role: "system", content: "你是一位专业的易经占卜师，语言庄重、玄妙且富有洞察力。" },
           { role: "user", content: prompt }
         ],
         stream: false,
         temperature: 0.7,
-        enable_thinking: false,
+        thinking: { type: "disabled" }
       })
     });
 
