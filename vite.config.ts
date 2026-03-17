@@ -2,6 +2,64 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import type { Plugin, Connect } from 'vite';
+import type { IncomingMessage, ServerResponse } from 'http';
+
+/**
+ * 本地开发时模拟 Vercel Serverless Functions
+ * 将 /api/* 请求转发给 api/ 目录下对应模块处理
+ */
+function localApiPlugin(): Plugin {
+  return {
+    name: 'local-api',
+    configureServer(server) {
+      server.middlewares.use(async (req: IncomingMessage & { body?: any }, res: ServerResponse, next: Connect.NextFunction) => {
+        if (!req.url?.startsWith('/api/')) return next();
+
+        const urlPath = req.url.split('?')[0]; // e.g. /api/divine
+        const handlerPath = path.resolve(__dirname, `.${urlPath}.js`);
+
+        const chunks: Buffer[] = [];
+        req.on('data', (chunk) => chunks.push(chunk));
+        req.on('end', async () => {
+          try {
+            const bodyStr = Buffer.concat(chunks).toString();
+            const body = bodyStr ? JSON.parse(bodyStr) : {};
+
+            // 构造 Vercel-like 的 req/res 对象
+            const mockReq = {
+              method: req.method,
+              headers: req.headers,
+              url: req.url,
+              body,
+            };
+
+            let statusCode = 200;
+            let responseBody = '';
+            const mockRes = {
+              status(code: number) { statusCode = code; return mockRes; },
+              json(data: any) {
+                responseBody = JSON.stringify(data);
+                res.setHeader('Content-Type', 'application/json');
+                res.writeHead(statusCode);
+                res.end(responseBody);
+              },
+            };
+
+            // 动态 require（每次清除缓存确保 hot reload）
+            delete require.cache[require.resolve(handlerPath)];
+            const handler = require(handlerPath).default;
+            await handler(mockReq, mockRes);
+          } catch (err) {
+            console.error('[local-api] error:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Local API Error' }));
+          }
+        });
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
@@ -12,6 +70,7 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [
         react(),
+        localApiPlugin(),
         VitePWA({
           registerType: 'autoUpdate',
           includeAssets: ['icon.svg'],

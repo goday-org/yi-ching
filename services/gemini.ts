@@ -1,15 +1,23 @@
 import { DivinationData } from "../types";
 
+import { getAccessToken } from "./auth";
+
 /**
  * 使用后台 API 进行周易六爻解析，隐藏 API KEY 和 Prompt 保证安全
  */
 export const interpretDivination = async (data: DivinationData) => {
   try {
+    const token = await getAccessToken();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch("/api/divine", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       // 仅发送原始卜卦数据，由后端 Vercel API 隐藏并处理 Prompt
       body: JSON.stringify({ data })
     });
