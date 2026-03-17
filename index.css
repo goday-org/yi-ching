@@ -1,0 +1,132 @@
+@import "tailwindcss";
+@config "./tailwind.config.js";
+
+:root {
+    --bg-color: #F5F5F0;
+    --text-color: #111111;
+    --accent-color: #8B1D1D; /* 沉稳的朱砂红 */
+    --panel-bg: rgba(245, 245, 240, 0.9);
+    --panel-border: rgba(17, 17, 17, 0.1);
+    --panel-shadow: 0 4px 40px rgba(0, 0, 0, 0.05);
+    --btn-bg: #111111;
+    --btn-text: #F5F5F0;
+    --input-bg: transparent;
+    --input-border: rgba(17, 17, 17, 0.2);
+    --input-text: #111111;
+    --input-focus-border: #111111;
+    --prose-text: #333333;
+    --noise-opacity: 0.03;
+}
+
+.dark {
+    --bg-color: #080808; /* 极简墨黑 */
+    --text-color: #EFEFEF;
+    --accent-color: #A32626; /* 暗黑下的朱砂红 */
+    --panel-bg: rgba(8, 8, 8, 0.95);
+    --panel-border: rgba(239, 239, 239, 0.1);
+    --panel-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+    --btn-bg: #EFEFEF;
+    --btn-text: #080808;
+    --input-bg: transparent;
+    --input-border: rgba(239, 239, 239, 0.2);
+    --input-text: #EFEFEF;
+    --input-focus-border: #EFEFEF;
+    --prose-text: rgba(239, 239, 239, 0.85);
+    --noise-opacity: 0.04;
+}
+
+/* 全局映射，防止 PWA 解析 body 前透出的白屏 */
+html {
+    background-color: var(--bg-color);
+    overscroll-behavior-y: none; /* 彻底禁止 iOS 的果冻回弹和下拉刷新 */
+    -webkit-tap-highlight-color: transparent; /* 取消移动端点击背景高亮圈 */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    @apply overflow-x-hidden m-0 p-0;
+    
+    /* PWA Native 优化：防误触文本选择和安全区垫片 */
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    
+    transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1), color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 恢复输入框的文本可选择性，不可影响输入交互 */
+input, textarea {
+    user-select: auto;
+    -webkit-user-select: auto;
+}
+
+/* 胶片噪点背景，替代原有的光晕星空，更具有艺术质感 */
+.ambient-bg {
+    @apply fixed inset-0 pointer-events-none;
+    z-index: -2;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: var(--noise-opacity);
+}
+
+.stars { @apply hidden; } /* 弃用千篇一律的星空效果 */
+
+/* 极简卡片 */
+.glass-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    box-shadow: var(--panel-shadow);
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 品牌核心文字色 */
+.accent-text {
+    color: var(--text-color);
+}
+
+.gold-btn {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    @apply relative overflow-hidden border border-solid;
+    border-color: var(--btn-bg);
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gold-btn::after {
+    @apply hidden;
+}
+
+.gold-btn:hover {
+    @apply scale-[0.98];
+}
+
+/* Input specific styles */
+.premium-input {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    @apply rounded-none;
+    color: var(--input-text);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-input:focus {
+    background: var(--input-bg);
+    border-color: var(--input-focus-border);
+    @apply outline-none shadow-none;
+}
+
+/* Result formatting */
+.prose-premium p {
+    color: var(--prose-text) !important;
+    @apply leading-[2] tracking-[0.05em];
+    transition: color 0.5s ease;
+}
+.prose-premium h3 {
+    color: var(--text-color) !important;
+    border-left-color: var(--accent-color) !important;
+    @apply border-l-2 pl-4;
+}
