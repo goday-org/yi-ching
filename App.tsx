@@ -205,22 +205,11 @@ const App: React.FC = () => {
           </button>
         )}
 
-        {/* 返回按钮 */}
-        {(step === AppStep.INPUT || step === AppStep.DIVINATION || step === AppStep.RESULT) && (
+        {/* 返回按钮 (统一位置：左上角，与头像平齐) */}
+        {(step === AppStep.INPUT || step === AppStep.DIVINATION || step === AppStep.RESULT || step === AppStep.HISTORY || step === AppStep.ADMIN) && (
           <button 
             onClick={goBack}
-            className="absolute top-6 left-full -ml-[calc(100%-80px)] z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black/60 dark:text-white/60 hover:text-[#111111] dark:hover:text-white transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 hidden md:block"
-            aria-label="返回"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-          </button>
-        )}
-        {(step === AppStep.INPUT || step === AppStep.DIVINATION || step === AppStep.RESULT) && (
-          <button 
-            onClick={goBack}
-            className="absolute top-[80px] left-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black/60 dark:text-white/60 hover:text-[#111111] dark:hover:text-white transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 md:hidden"
+            className="absolute top-6 left-6 z-50 p-3 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black/60 dark:text-white/60 hover:text-[#111111] dark:hover:text-white transition-all backdrop-blur-md border border-neutral-300/30 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30"
             aria-label="返回"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

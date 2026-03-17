@@ -35,19 +35,11 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ profile, onBack }) => {
   return (
     <div className="w-full flex flex-col h-full animate-in fade-in duration-700 mt-12 md:mt-4">
       {/* 标题 */}
-      <div className="flex items-end justify-between border-b border-black/10 dark:border-white/10 pb-6 mb-8 gap-4">
-        <div>
-          <p className="text-[#8B1D1D] dark:text-[#A32626] text-xs tracking-[0.4em] uppercase mb-2 font-bold">历 史 记 录</p>
-          <h2 className="text-4xl md:text-5xl font-black font-serif tracking-[0.2em] text-[#111111] dark:text-[#EFEFEF]">
-            {profile.username}
-          </h2>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-6 py-3 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 text-xs font-bold tracking-[0.5em] shrink-0"
-        >
-          返 回
-        </button>
+      <div className="border-b border-black/10 dark:border-white/10 pb-6 mb-8">
+        <p className="text-[#8B1D1D] dark:text-[#A32626] text-xs tracking-[0.4em] uppercase mb-2 font-bold">历 史 记 录</p>
+        <h2 className="text-4xl md:text-5xl font-black font-serif tracking-[0.2em] text-[#111111] dark:text-[#EFEFEF]">
+          {profile.username}
+        </h2>
       </div>
 
       {/* 内容区 */}
