@@ -116,6 +116,16 @@ export const getCurrentUser = async (): Promise<UserProfile | null> => {
 };
 
 /**
+ * 修改密码
+ */
+export const updatePassword = async (newPassword: string): Promise<void> => {
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+  if (error) throw new Error(`修改密码失败：${error.message}`);
+};
+
+/**
  * 获取当前会话 JWT Token（用于 API 请求认证）
  */
 export const getAccessToken = async (): Promise<string | null> => {

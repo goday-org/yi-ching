@@ -9,12 +9,14 @@ import AuthModal from './components/AuthModal';
 import UserMenu from './components/UserMenu';
 import HistoryPage from './components/HistoryPage';
 import AdminPage from './components/AdminPage';
+import PasswordModal from './components/PasswordModal';
 import { getCurrentUser } from './services/auth';
 import { checkQuota, saveDivinationRecord } from './services/divinationDb';
 
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [quota, setQuota] = useState({ canDivine: false, remaining: 0, total: 0 });
 
@@ -187,6 +189,7 @@ const App: React.FC = () => {
             onSignOut={handleSignOut}
             onViewHistory={() => setStep(AppStep.HISTORY)}
             onViewAdmin={() => setStep(AppStep.ADMIN)}
+            onChangePassword={() => setShowPasswordModal(true)}
           />
         )}
 
@@ -241,7 +244,7 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            <div onClick={startDivination} className="cursor-pointer transform transition-all duration-1000 relative">
+            <div className="transform transition-all duration-1000 relative">
               <Compass />
             </div>
 
@@ -416,6 +419,7 @@ const App: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139, 29, 29, 0.8); }
       `}</style>
       <PwaPrompt />
+      {showPasswordModal && <PasswordModal onClose={() => setShowPasswordModal(false)} />}
     </div>
   );
 };
