@@ -126,13 +126,13 @@ const App: React.FC = () => {
     try {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
-      
+      let hasStarted = false;
       const result = await interpretDivination(data, 
         (text) => {
           setResultText(text);
         },
         () => {
-          // 接到数据开始传输的那一刻，就切换到结果页
+          hasStarted = true;
           setLoading(false);
           setStreaming(true);
           setStep(AppStep.RESULT);
@@ -141,7 +141,7 @@ const App: React.FC = () => {
       
       setStreaming(false);
 
-      if (!result && step !== AppStep.RESULT) {
+      if (!result && !hasStarted) {
         setResultText("大师目前繁忙，未能给出批复。");
         setStep(AppStep.RESULT);
         setLoading(false);
@@ -379,7 +379,7 @@ const App: React.FC = () => {
         {step === AppStep.RESULT && (
           <div className="w-full flex flex-col h-full animate-in fade-in zoom-in-95 duration-1000 ease-out mt-12 md:mt-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-black/10 dark:border-white/10 pb-6 mb-8 gap-6 md:gap-0">
-              <div>
+              <div className="animate-in fade-in duration-700">
                 <p className="text-[#8B1D1D] dark:text-[#A32626] text-xs tracking-[0.4em] uppercase mb-2 font-bold">得 卦</p>
                 <h2 className="text-5xl md:text-6xl font-black font-serif tracking-[0.2em] relative inline-block text-[#111111] dark:text-[#EFEFEF]">
                   {getOriginalHexName()}
@@ -387,7 +387,7 @@ const App: React.FC = () => {
               </div>
               <button 
                 onClick={reset} 
-                className="px-8 py-3 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 text-xs font-bold tracking-[0.5em] shrink-0"
+                className="px-8 py-3 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 text-xs font-bold tracking-[0.5em] shrink-0 animate-in fade-in duration-1000"
               >
                 谢 卦
               </button>
@@ -397,7 +397,7 @@ const App: React.FC = () => {
               ref={resultScrollRef}
               className="overflow-y-auto pr-4 space-y-8 custom-scrollbar pb-12 flex-1 scroll-smooth"
             >
-              <div className="bg-black/5 dark:bg-white/5 p-8 border border-black/10 dark:border-white/10">
+              <div className="bg-black/5 dark:bg-white/5 p-8 border border-black/10 dark:border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <p className="text-black/50 dark:text-white/50 text-xs tracking-widest mb-4 font-bold border-b border-black/10 dark:border-white/10 pb-2 inline-block">所问之事</p>
                 <div className="italic text-[#111111] dark:text-[#EFEFEF] font-serif text-lg leading-relaxed">
                   “{formData.question}”
@@ -413,25 +413,27 @@ const App: React.FC = () => {
                   if (!cleanLine && !isLastLine) return <div key={i} className="h-4"></div>;
                   
                   return isHeader ? (
-                    <h3 key={i} className="text-xl md:text-2xl font-serif font-bold mb-4 mt-10">
+                    <h3 key={i} className="text-xl md:text-2xl font-serif font-bold mb-4 mt-10 animate-in fade-in duration-500">
                       {cleanLine}
                     </h3>
                   ) : (
                     <p key={i} className="text-[#333333] dark:text-[rgba(239,239,239,0.85)] text-base md:text-lg leading-loose mb-4 text-justify font-sans font-light tracking-wide inline-block w-full">
-                      {cleanLine}
+                      <span className="animate-in fade-in duration-300">{cleanLine}</span>
                       {isLastLine && streaming && (
                         <span className="inline-block w-1.5 h-5 ml-1 align-middle bg-[#8B1D1D] dark:bg-[#A32626] animate-pulse"></span>
                       )}
                     </p>
                   );
                 })}
-              </div>
-
-              <div className="mt-16 pt-8 border-t border-black/10 dark:border-white/10 flex flex-col items-center">
-                <div className="w-1 px-8 h-px bg-[#8B1D1D] mb-6"></div>
-                <p className="text-xs text-black/40 dark:text-white/40 font-serif tracking-[0.4em] uppercase">
-                  无往不复 · 天道忌盈
-                </p>
+                {/* 仅在接收完成后展示天道忌盈的结语 */}
+                {!streaming && resultText.length > 0 && (
+                  <div className="mt-16 pt-8 border-t border-black/10 dark:border-white/10 flex flex-col items-center animate-in fade-in duration-1000">
+                    <div className="w-1 px-8 h-px bg-[#8B1D1D] mb-6"></div>
+                    <p className="text-xs text-black/40 dark:text-white/40 font-serif tracking-[0.4em] uppercase">
+                      无往不复 · 天道忌盈
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

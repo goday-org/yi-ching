@@ -37,47 +37,28 @@ export const interpretDivination = async (
     }
 
     const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8");
     let resultText = "";
-    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      
-      // 最后一行可能不完整（比如正在传输中的 JSON），保留到下个 chunk 处理
-      buffer = lines.pop() || "";
-
-      for (let line of lines) {
-        line = line.trim();
-        if (!line) continue;
-        
-        // 匹配 data: 开头的行，并提取后面的内容
-        // SSE 规范允许 data:后面没有空格，也可能有多个空格
-        const match = line.match(/^data:\s*(.*)$/);
-        if (match) {
-          const jsonStr = match[1].trim();
-          
-          if (!jsonStr || jsonStr === '[DONE]') continue;
-          
-          try {
-            const json = JSON.parse(jsonStr);
-            const content = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            if (content) {
-              resultText += content;
-              if (onUpdate) onUpdate(resultText);
-            }
-          } catch (e) {
-            // 忽略由于分块导致的、暂时无法解析为完整 JSON 的行
-            console.warn("Skipping partial/invalid JSON chunk:", jsonStr);
-          }
-        }
+      // 增量解码纯文本流
+      const chunk = decoder.decode(value, { stream: true });
+      if (chunk) {
+        resultText += chunk;
+        if (onUpdate) onUpdate(resultText);
       }
     }
     
+    // 如果存在未处理完毕的数据（正常情况下 stream: true 已经处理完善）
+    const tail = decoder.decode();
+    if (tail) {
+      resultText += tail;
+      if (onUpdate) onUpdate(resultText);
+    }
+
     return resultText;
   } catch (error: any) {
     console.error("API Service Error:", error);
