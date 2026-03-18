@@ -30,6 +30,8 @@ const App: React.FC = () => {
   const [divinationData, setDivinationData] = useState<DivinationData | null>(null);
   const [resultText, setResultText] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [streaming, setStreaming] = useState<boolean>(false);
+  const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -115,7 +117,6 @@ const App: React.FC = () => {
     setStep(AppStep.DIVINATION);
   };
 
-  const [streaming, setStreaming] = useState<boolean>(false);
   const streamingRef = React.useRef<boolean>(false);
   const typingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const charQueueRef = React.useRef<string[]>([]);
@@ -125,6 +126,7 @@ const App: React.FC = () => {
     setDivinationData(data);
     setLoading(true);
     setStreaming(false);
+    setIsAiResponding(false);
     setError(null);
     setResultText(""); 
     setStep(AppStep.RESULT); 
@@ -157,6 +159,7 @@ const App: React.FC = () => {
         (chunk) => {
           // AI 只有增量内容被推入队列，此时队列里可能还有没打完的开场白
           // 这样能做到毫无间断的衔接
+          setIsAiResponding(true);
           charQueueRef.current.push(...chunk.split(""));
         },
         () => {
@@ -194,6 +197,7 @@ const App: React.FC = () => {
     setFormData({ type: '感情问题', question: '' });
     setDivinationData(null);
     setResultText('');
+    setIsAiResponding(false);
     setError(null);
   };
 
@@ -435,8 +439,8 @@ const App: React.FC = () => {
               </div>
 
               <div className="prose prose-invert prose-premium max-w-none">
-                {resultText === "" && (loading || streaming) && (
-                  <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-1000">
+                {(loading || (streaming && !isAiResponding)) && (
+                  <div className="flex flex-col items-center justify-center py-10 animate-in fade-in duration-1000">
                     <div className="relative w-32 h-32 mb-8 bagua-breath">
                        <svg viewBox="0 0 100 100" className="w-full h-full bagua-loader opacity-20 dark:opacity-30 stroke-current text-black dark:text-white fill-none" strokeWidth="1">
                          <circle cx="50" cy="50" r="48" />

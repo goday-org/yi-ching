@@ -10,7 +10,7 @@ export const getTodayUsageCount = async (userId: string): Promise<number> => {
 
   try {
     const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error('DB Timeout')), 3000)
+      setTimeout(() => reject(new Error('DB Timeout')), 5000)
     );
     
     const queryPromise = supabase
@@ -52,7 +52,7 @@ export const saveDivinationRecord = async (
 ): Promise<DivinationRecord> => {
   try {
     const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error('Save Timeout')), 3000)
+      setTimeout(() => reject(new Error('Save Timeout')), 10000)
     );
 
     const insertPromise = supabase
