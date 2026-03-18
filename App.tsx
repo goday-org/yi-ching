@@ -13,8 +13,6 @@ import PasswordModal from './components/PasswordModal';
 import { getCurrentUser } from './services/auth';
 import { checkQuota, saveDivinationRecord } from './services/divinationDb';
 
-const ZEN_GREETING = "卦象已起，乾坤初动。大师正在为您凝神推演，请屏息以待...\n\n";
-
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -131,47 +129,39 @@ const App: React.FC = () => {
     setResultText(""); 
     setStep(AppStep.RESULT); 
     
-    // --- 立即启动“先声夺人”预打字逻辑 ---
-    // 不等后端返回任何字节，先在前端队列里填入开场白
-    let hasStarted = false;
-    charQueueRef.current = ZEN_GREETING.split("");
-    hasStarted = true; // 标记已经开始打字了
-    setLoading(false);
-    setStreaming(true);
-    streamingRef.current = true;
-
-    if (typingTimerRef.current) clearInterval(typingTimerRef.current);
-    typingTimerRef.current = setInterval(() => {
-      if (charQueueRef.current.length > 0) {
-        const nextChar = charQueueRef.current.shift();
-        setResultText(prev => prev + (nextChar || ""));
-      } else if (!streamingRef.current) {
-        if (typingTimerRef.current) clearInterval(typingTimerRef.current);
-        typingTimerRef.current = null;
-      }
-    }, 45); // 稍微快一点点
-
     try {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
       
+      charQueueRef.current = [];
       const result = await interpretDivination(data, 
         (chunk) => {
-          // AI 只有增量内容被推入队列，此时队列里可能还有没打完的开场白
-          // 这样能做到毫无间断的衔接
           setIsAiResponding(true);
           charQueueRef.current.push(...chunk.split(""));
         },
         () => {
-          // 由于我们已经手工启动了转场和预打字，这里的 onStart 回调主要作为确认同步点
+          setLoading(false);
+          setStreaming(true);
+          streamingRef.current = true;
+
+          if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+          typingTimerRef.current = setInterval(() => {
+            if (charQueueRef.current.length > 0) {
+              const nextChar = charQueueRef.current.shift();
+              setResultText(prev => prev + (nextChar || ""));
+            } else if (!streamingRef.current) {
+              if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+              typingTimerRef.current = null;
+            }
+          }, 50); 
         }
       );
       
       streamingRef.current = false;
       setStreaming(false);
 
-      // 如果流结束了但一直没开始过（hasStarted 为 false），说明连第一个字都没读到
-      if (!hasStarted) {
+      // 如果流结束了但一直没开始过（isAiResponding 为 false），说明连第一个字都没读到
+      if (!isAiResponding) {
         setResultText("大师正在凝神感应，请稍后再次尝试。");
         setLoading(false);
       }

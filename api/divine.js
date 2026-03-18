@@ -11,15 +11,17 @@ export default async function handler(req, res) {
   }
 
   // --- 立即响应策略 (Early Response) ---
-  // 发送 Headers 和 Padding，防止 Vercel 超时 (ERR_TIMED_OUT)
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-transform');
-  res.setHeader('Connection', 'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
+  // 使用 writeHead 强制立即写出，防止 Vercel/中间代理缓冲 Headers
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
 
-  // 立即写出建立连接的消息和 Padding 冲刷代理缓存
-  res.write(": connection established\n\n");
-  res.write(": " + " ".repeat(2048) + "\n\n");
+  // 立即写出 4KB Padding，确保穿透所有中间代理的缓冲区 (如 Cloudflare, Vercel Edge)
+  res.write(": connection established\n");
+  res.write(": " + " ".repeat(4096) + "\n\n");
   if (res.flush) res.flush();
 
   const { data } = req.body;
@@ -30,7 +32,7 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // 1. 并行准备：AI 请求与账号校验
+    // 1. 获取基础配置
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.write(`data: ${JSON.stringify({ e: '未授权，请先登录' })}\n\n`);
@@ -47,7 +49,7 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // A. 提前构造 Prompt 并发出 AI 请求 (并行主线程)
+    // A. 立即发出 AI 请求 (并行主线程)
     const originalHex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
     const changedHex = data.throws.map(t => {
       if (t.lineType === 'old_yang') return '0';
@@ -72,35 +74,36 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // B. 并行执行用户鉴权与次数校验
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      res.write(`data: ${JSON.stringify({ e: '认证失效，请重新登录' })}\n\n`);
+    // B. 后端鉴权与限额校验 (带 6s 硬超时，防止 Lambda 挂起导致 ERR_TIMED_OUT)
+    const backendTask = (async () => {
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !user) throw new Error('认证失效，请重新登录');
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const [{ data: profile }, { count }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('divination_records').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', today.toISOString())
+      ]);
+
+      if (!profile) throw new Error('无法获取用户档案');
+      const used = count || 0;
+      if (used >= (profile.daily_limit + profile.extra_uses)) throw new Error('今日起卦次数已用尽，天道忌盈');
+
+      return true;
+    })();
+
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('感应受阻 (Backend Timeout)')), 6000));
+
+    try {
+      await Promise.race([backendTask, timeout]);
+    } catch (e) {
+      res.write(`data: ${JSON.stringify({ e: e.message })}\n\n`);
       return res.end();
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const [{ data: profile }, { count }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('divination_records').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', today.toISOString())
-    ]);
-
-    if (!profile) {
-      res.write(`data: ${JSON.stringify({ e: '无法获取用户档案' })}\n\n`);
-      return res.end();
-    }
-
-    const used = count || 0;
-    const totalAllowed = profile.daily_limit + profile.extra_uses;
-
-    if (used >= totalAllowed) {
-      res.write(`data: ${JSON.stringify({ e: '今日起卦次数已用尽，天道忌盈' })}\n\n`);
-      return res.end();
-    }
-
-    // C. 等待并处理 AI 响应
+    // C. 处理 AI 响应
     const response = await aiPromise;
     if (!response.ok) {
       res.write(`data: ${JSON.stringify({ e: `大师精神不振 (Code: ${response.status})` })}\n\n`);
@@ -122,10 +125,8 @@ export default async function handler(req, res) {
       for (let line of lines) {
         const trimmed = line.trim();
         if (!trimmed || !trimmed.startsWith('data:')) continue;
-        
         const jsonStr = trimmed.replace(/^data:\s*/, "");
         if (!jsonStr || jsonStr === '[DONE]') continue;
-        
         try {
           const json = JSON.parse(jsonStr);
           const content = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
@@ -136,7 +137,6 @@ export default async function handler(req, res) {
         } catch (e) {}
       }
     }
-    
     res.end();
 
   } catch (err) {
