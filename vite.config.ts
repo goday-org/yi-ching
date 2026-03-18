@@ -85,8 +85,8 @@ export default defineConfig(({ mode }) => {
           registerType: 'autoUpdate',
           includeAssets: ['logo.png'],
           manifest: {
-            name: '周易六爻算卦',
-            short_name: '卜卦',
+            name: '周易六爻',
+            short_name: '周易六爻',
             description: '东方极简周易数字起卦系统',
             theme_color: '#080808',
             background_color: '#080808',

@@ -297,7 +297,7 @@ const App: React.FC = () => {
           <div className="flex flex-col items-center justify-center space-y-12 animate-in fade-in zoom-in-95 duration-[1200ms] ease-out w-full h-full my-auto flex-1 pb-10">
             <div className="text-center space-y-4 md:space-y-6 mt-10 md:mt-4">
               <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-[0.4em] md:tracking-[0.6em] font-serif mt-4 text-[#111111] dark:text-[#EFEFEF]">
-                周易算卦
+                周易六爻
               </h1>
               <div className="flex items-center justify-center gap-3 sm:gap-6 text-black/50 dark:text-white/50 tracking-[0.2em] sm:tracking-[0.4em] font-light text-[10px] sm:text-xs md:text-sm uppercase px-4 whitespace-nowrap">
                 <span className="h-px w-6 sm:w-12 bg-black/10 dark:bg-white/10 hidden sm:block"></span>
