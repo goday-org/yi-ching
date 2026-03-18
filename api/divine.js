@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // 1. JWT 鉴权
+    // 1. 并行准备：AI 请求与账号校验
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.write(`data: ${JSON.stringify({ e: '未授权，请先登录' })}\n\n`);
@@ -40,50 +40,14 @@ export default async function handler(req, res) {
 
     const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_API_KEY;
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseKey || !apiKey) {
       res.write(`data: ${JSON.stringify({ e: '服务端配置异常' })}\n\n`);
       return res.end();
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      res.write(`data: ${JSON.stringify({ e: '认证失效，请重新登录' })}\n\n`);
-      return res.end();
-    }
-
-    // 2. 次数限制校验
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile) {
-      res.write(`data: ${JSON.stringify({ e: '无法获取用户档案' })}\n\n`);
-      return res.end();
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const { count } = await supabase
-      .from('divination_records')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .gte('created_at', today.toISOString());
-
-    const used = count || 0;
-    const totalAllowed = profile.daily_limit + profile.extra_uses;
-
-    if (used >= totalAllowed) {
-      res.write(`data: ${JSON.stringify({ e: '今日起卦次数已用尽，天道忌盈' })}\n\n`);
-      return res.end();
-    }
-
-    // 3. 执行 AI 解卜
+    // A. 提前构造 Prompt 并发出 AI 请求 (并行主线程)
     const originalHex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
     const changedHex = data.throws.map(t => {
       if (t.lineType === 'old_yang') return '0';
@@ -94,46 +58,50 @@ export default async function handler(req, res) {
     const originalName = HEXAGRAM_NAMES[originalHex] || '未知卦';
     const changedName = HEXAGRAM_NAMES[changedHex] || '未知卦';
 
-    const finalPrompt = `
-用户咨询领域：${data.type}
-用户求占事项：${data.question}
+    const finalPrompt = `用户咨询领域：${data.type}\n用户求占事项：${data.question}\n\n卦象分析报告：\n- 本卦：${originalName} (${originalHex})\n- 变卦：${changedName} (${changedHex})\n- 逐爻信息：\n${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType.includes('old') ? (t.lineType.includes('yang') ? '老阳(动)' : '老阴(动)') : (t.lineType.includes('yang') ? '少阳' : '少阴')}`).join('\n')}\n\n你的任务：基于上述排盘信息背景，围绕求测的核心问题进行解答。答案体例必须遵照极简、严肃、隐秘的东方禅意排版进行，言语须像大师批文一般直指南心：\n### 〇一 · 卦象全解\n### 〇二 · 动爻玄机\n### 〇三 · 行动建议\n### 〇四 · 极简箴言\n以一句不超过五字的半白话诗意短句总结全盘应对策略，不准加句号。`;
 
-卦象分析报告：
-- 本卦：${originalName} (${originalHex})
-- 变卦：${changedName} (${changedHex})
-- 逐爻信息（从初爻至上爻排布）：
-${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType === 'old_yang' ? '老阳(动爻)' : t.lineType === 'old_yin' ? '老阴(动爻)' : t.lineType === 'yang' ? '少阳' : '少阴'}`).join('\n')}
-
-你的任务：
-基于上述排盘信息，围绕求测的核心问题进行解答。答案体例必须遵照极简、严肃、隐秘的东方禅意排版进行，言语须像大师批文一般直指南心：
-### 〇一 · 卦象全解
-解析本卦与变卦的气运总断，判断吉凶及目前的无形磁场态势。
-### 〇二 · 动爻玄机
-精准解读发生“动”的爻位（如有），揭示事物转化的关键变化契机；若无动爻，则断六爻静象。
-### 〇三 · 行动建议
-针对求测事件，结合五行生克与卦理，给出具有指导价值的实质性策略。
-### 〇四 · 极简箴言
-以一句不超过五字的半白话诗意短句总结全盘应对策略，不准加句号。
-`;
-
-    const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_API_KEY;
-    if (!apiKey) {
-      res.write(`data: ${JSON.stringify({ e: '服务端 API Key 未配置' })}\n\n`);
-      return res.end();
-    }
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`, {
+    const aiPromise = fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: "你是一位隐脉相传的顶级周易玄学宗师，语言不落俗套，文辞高深玄奥、直指问题本质。回答严格按照提供的段落输出，去除所有多余寒暄。" }]
-        },
+        systemInstruction: { parts: [{ text: "你是一位隐脉相传的顶级周易玄学宗师，语言不落俗套，文辞高深玄奥、直指问题本质。回答严格按照提供的段落输出，去除所有多余寒暄。" }] },
         contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
         generationConfig: { temperature: 0.7 }
       })
     });
 
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // B. 并行执行用户鉴权与次数校验
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      res.write(`data: ${JSON.stringify({ e: '认证失效，请重新登录' })}\n\n`);
+      return res.end();
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [{ data: profile }, { count }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('divination_records').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', today.toISOString())
+    ]);
+
+    if (!profile) {
+      res.write(`data: ${JSON.stringify({ e: '无法获取用户档案' })}\n\n`);
+      return res.end();
+    }
+
+    const used = count || 0;
+    const totalAllowed = profile.daily_limit + profile.extra_uses;
+
+    if (used >= totalAllowed) {
+      res.write(`data: ${JSON.stringify({ e: '今日起卦次数已用尽，天道忌盈' })}\n\n`);
+      return res.end();
+    }
+
+    // C. 等待并处理 AI 响应
+    const response = await aiPromise;
     if (!response.ok) {
       res.write(`data: ${JSON.stringify({ e: `大师精神不振 (Code: ${response.status})` })}\n\n`);
       return res.end();

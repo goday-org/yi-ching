@@ -130,3 +130,33 @@ input, textarea {
     border-left-color: var(--accent-color) !important;
     @apply border-l-2 pl-4;
 }
+
+/* 八卦阵加载动画 */
+.bagua-loader {
+    animation: bagua-rotate 12s linear infinite;
+    transform-origin: center;
+}
+
+.bagua-breath {
+    animation: bagua-breath 4s ease-in-out infinite;
+}
+
+@keyframes bagua-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bagua-breath {
+    0%, 100% { opacity: 0.15; filter: blur(0px); }
+    50% { opacity: 0.4; filter: blur(1px); }
+}
+
+/* 禅意文字渐显 */
+.zen-text-fade {
+    animation: zen-fade 3s ease-in-out infinite;
+}
+
+@keyframes zen-fade {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}

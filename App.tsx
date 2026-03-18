@@ -13,6 +13,8 @@ import PasswordModal from './components/PasswordModal';
 import { getCurrentUser } from './services/auth';
 import { checkQuota, saveDivinationRecord } from './services/divinationDb';
 
+const ZEN_GREETING = "卦象已起，乾坤初动。大师正在为您凝神推演，请屏息以待...\n\n";
+
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -125,34 +127,40 @@ const App: React.FC = () => {
     setStreaming(false);
     setError(null);
     setResultText(""); 
-    setStep(AppStep.RESULT); // 立即进入结果页，利用纸张展开动画掩盖首字节延迟
+    setStep(AppStep.RESULT); 
     
+    // --- 立即启动“先声夺人”预打字逻辑 ---
+    // 不等后端返回任何字节，先在前端队列里填入开场白
+    let hasStarted = false;
+    charQueueRef.current = ZEN_GREETING.split("");
+    hasStarted = true; // 标记已经开始打字了
+    setLoading(false);
+    setStreaming(true);
+    streamingRef.current = true;
+
+    if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+    typingTimerRef.current = setInterval(() => {
+      if (charQueueRef.current.length > 0) {
+        const nextChar = charQueueRef.current.shift();
+        setResultText(prev => prev + (nextChar || ""));
+      } else if (!streamingRef.current) {
+        if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+        typingTimerRef.current = null;
+      }
+    }, 45); // 稍微快一点点
+
     try {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
-      let hasStarted = false;
-      charQueueRef.current = []; 
       
       const result = await interpretDivination(data, 
         (chunk) => {
+          // AI 只有增量内容被推入队列，此时队列里可能还有没打完的开场白
+          // 这样能做到毫无间断的衔接
           charQueueRef.current.push(...chunk.split(""));
         },
         () => {
-          hasStarted = true;
-          setLoading(false);
-          setStreaming(true);
-          streamingRef.current = true;
-
-          if (typingTimerRef.current) clearInterval(typingTimerRef.current);
-          typingTimerRef.current = setInterval(() => {
-            if (charQueueRef.current.length > 0) {
-              const nextChar = charQueueRef.current.shift();
-              setResultText(prev => prev + (nextChar || ""));
-            } else if (!streamingRef.current) {
-              if (typingTimerRef.current) clearInterval(typingTimerRef.current);
-              typingTimerRef.current = null;
-            }
-          }, 50); 
+          // 由于我们已经手工启动了转场和预打字，这里的 onStart 回调主要作为确认同步点
         }
       );
       
@@ -429,8 +437,22 @@ const App: React.FC = () => {
               <div className="prose prose-invert prose-premium max-w-none">
                 {resultText === "" && (loading || streaming) && (
                   <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-1000">
-                    <div className="w-8 h-8 border-t-2 border-[#8B1D1D] dark:border-[#A32626] rounded-full animate-spin mb-6 opacity-40"></div>
-                    <p className="text-sm text-black/40 dark:text-white/40 font-serif tracking-[0.3em] animate-pulse">
+                    <div className="relative w-32 h-32 mb-8 bagua-breath">
+                       <svg viewBox="0 0 100 100" className="w-full h-full bagua-loader opacity-20 dark:opacity-30 stroke-current text-black dark:text-white fill-none" strokeWidth="1">
+                         <circle cx="50" cy="50" r="48" />
+                         <path d="M50 2 L50 98 M2 50 L98 50 M16 16 L84 84 M16 84 L84 16" />
+                         <circle cx="50" cy="50" r="15" />
+                         {/* 简单的八卦占位符图形 */}
+                         <rect x="40" y="5" width="20" height="3" fill="currentColor" />
+                         <rect x="40" y="92" width="20" height="3" fill="currentColor" />
+                         <rect x="5" y="40" width="3" height="20" fill="currentColor" />
+                         <rect x="92" y="40" width="3" height="20" fill="currentColor" />
+                       </svg>
+                       <div className="absolute inset-0 flex items-center justify-center">
+                         <span className="text-xl font-serif text-[#8B1D1D] dark:text-[#A32626] zen-text-fade">感</span>
+                       </div>
+                    </div>
+                    <p className="text-sm text-black/40 dark:text-white/40 font-serif tracking-[0.3em] zen-text-fade">
                       大师正在凝神感应，请屏息以待...
                     </p>
                   </div>
