@@ -2,20 +2,20 @@
 @config "./tailwind.config.js";
 
 :root {
-    --bg-color: #F5F5F0;
+    --bg-color: #FFFFFF;
     --text-color: #111111;
     --accent-color: #8B1D1D; /* 沉稳的朱砂红 */
-    --panel-bg: rgba(245, 245, 240, 0.9);
-    --panel-border: rgba(17, 17, 17, 0.1);
-    --panel-shadow: 0 4px 40px rgba(0, 0, 0, 0.05);
+    --panel-bg: rgba(255, 255, 255, 0.9);
+    --panel-border: rgba(0, 0, 0, 0.08);
+    --panel-shadow: 0 4px 40px rgba(0, 0, 0, 0.03);
     --btn-bg: #111111;
-    --btn-text: #F5F5F0;
+    --btn-text: #FFFFFF;
     --input-bg: transparent;
-    --input-border: rgba(17, 17, 17, 0.2);
+    --input-border: rgba(0, 0, 0, 0.15);
     --input-text: #111111;
     --input-focus-border: #111111;
     --prose-text: #333333;
-    --noise-opacity: 0.03;
+    --noise-opacity: 0.02;
 }
 
 .dark {
