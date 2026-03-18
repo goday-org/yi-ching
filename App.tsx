@@ -114,6 +114,8 @@ const App: React.FC = () => {
   };
 
   const [streaming, setStreaming] = useState<boolean>(false);
+  const streamingRef = React.useRef<boolean>(false);
+  const typingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   
   const handleDivinationComplete = async (throws: ThrowResult[]) => {
     const data: DivinationData = { ...formData, throws };
@@ -127,19 +129,43 @@ const App: React.FC = () => {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
       let hasStarted = false;
+      const charQueue: string[] = []; // 字符缓冲队列
+      let fullText = ""; // 记录已接收的所有文本
+      
       const result = await interpretDivination(data, 
-        (text) => {
-          setResultText(text);
+        (chunk) => {
+          // 将新收到的数据包拆解成单个字符存入队列
+          charQueue.push(...chunk.split(""));
+          fullText += chunk;
         },
         () => {
           hasStarted = true;
           setLoading(false);
           setStreaming(true);
+          streamingRef.current = true; // 设置流开始
           setStep(AppStep.RESULT);
+
+          // 开启平滑打字计时器
+          typingTimerRef.current = setInterval(() => {
+            if (charQueue.length > 0) {
+              const nextChar = charQueue.shift();
+              setResultText(prev => prev + (nextChar || ""));
+            } else if (!streamingRef.current) {
+              // 如果队列空了且流已结束，清除计时器
+              if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+              typingTimerRef.current = null;
+            }
+          }, 30); // 30ms 速度适中
         }
       );
       
+      // 流彻底结束，记录结果并更新 UI 状态
+      streamingRef.current = false;
       setStreaming(false);
+      if (typingTimerRef.current) {
+        clearInterval(typingTimerRef.current);
+        typingTimerRef.current = null;
+      }
 
       if (!result && !hasStarted) {
         setResultText("大师目前繁忙，未能给出批复。");
@@ -160,6 +186,10 @@ const App: React.FC = () => {
   };
 
   const reset = () => {
+    if (typingTimerRef.current) {
+      clearInterval(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
     setStep(AppStep.LANDING);
     setFormData({ type: '感情问题', question: '' });
     setDivinationData(null);

@@ -14,6 +14,7 @@ export const interpretDivination = async (
     const token = await getAccessToken();
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
+      "Accept": "text/plain",
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
