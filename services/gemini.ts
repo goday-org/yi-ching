@@ -45,19 +45,22 @@ export const interpretDivination = async (
       const { done, value } = await reader.read();
       if (done) break;
 
-      // 增量解码纯文本流
-      const chunk = decoder.decode(value, { stream: true });
+      // 增量解码并移除可能的 Padding 标记
+      let chunk = decoder.decode(value, { stream: true });
+      chunk = chunk.replace(/<!-- STREAM_START -->\s*/, "");
+      
       if (chunk) {
         resultText += chunk;
-        if (onUpdate) onUpdate(resultText);
+        if (onUpdate) onUpdate(chunk); // 仅传回清洗后的增量
       }
     }
     
-    // 如果存在未处理完毕的数据（正常情况下 stream: true 已经处理完善）
-    const tail = decoder.decode();
+    // 最终清理
+    let tail = decoder.decode();
+    tail = tail.replace(/<!-- STREAM_START -->\s*/, "");
     if (tail) {
       resultText += tail;
-      if (onUpdate) onUpdate(resultText);
+      if (onUpdate) onUpdate(tail);
     }
 
     return resultText;
