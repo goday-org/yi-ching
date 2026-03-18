@@ -111,8 +111,9 @@ export const getProfile = async (userId: string): Promise<UserProfile | null> =>
  */
 export const getCurrentUser = async (): Promise<UserProfile | null> => {
   try {
+    // 提升至 5s 超时，确保极高稳定性
     const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error('Auth Timeout')), 1000)
+      setTimeout(() => reject(new Error('Auth Timeout')), 5000)
     );
     
     const userPromise = supabase.auth.getUser().then(({ data: { user } }) => user);
@@ -141,9 +142,9 @@ export const updatePassword = async (newPassword: string): Promise<void> => {
  */
 export const getAccessToken = async (): Promise<string | null> => {
   try {
-    // 1秒超时竞争
+    // 获取 Token 也放宽至 5s
     const timeoutPromise = new Promise<null>((_, reject) => 
-      setTimeout(() => reject(new Error('Auth Timeout')), 1000)
+      setTimeout(() => reject(new Error('Auth Timeout')), 5000)
     );
     
     const sessionPromise = supabase.auth.getSession().then(({ data }) => data.session?.access_token || null);
