@@ -127,20 +127,21 @@ const App: React.FC = () => {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
       
-      let firstChunk = true;
-      const result = await interpretDivination(data, (text) => {
-        if (firstChunk) {
+      const result = await interpretDivination(data, 
+        (text) => {
+          setResultText(text);
+        },
+        () => {
+          // 接到数据开始传输的那一刻，就切换到结果页
           setLoading(false);
           setStreaming(true);
           setStep(AppStep.RESULT);
-          firstChunk = false;
         }
-        setResultText(text);
-      });
+      );
       
       setStreaming(false);
 
-      if (!result && firstChunk) {
+      if (!result && step !== AppStep.RESULT) {
         setResultText("大师目前繁忙，未能给出批复。");
         setStep(AppStep.RESULT);
         setLoading(false);

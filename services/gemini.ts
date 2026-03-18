@@ -5,7 +5,11 @@ import { getAccessToken } from "./auth";
 /**
  * 使用后台 API 进行周易六爻解析，隐藏 API KEY 和 Prompt 保证安全
  */
-export const interpretDivination = async (data: DivinationData, onUpdate?: (text: string) => void) => {
+export const interpretDivination = async (
+  data: DivinationData, 
+  onUpdate?: (text: string) => void,
+  onStart?: () => void
+) => {
   try {
     const token = await getAccessToken();
     const headers: Record<string, string> = {
@@ -25,6 +29,8 @@ export const interpretDivination = async (data: DivinationData, onUpdate?: (text
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error || `AI 服务感应中断 (Code: ${response.status})，请稍后再试。`);
     }
+
+    if (onStart) onStart();
 
     if (!response.body) {
       throw new Error("天地无感，虚空无语。");
