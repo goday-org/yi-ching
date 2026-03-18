@@ -10,62 +10,80 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  // --- 立即响应策略 (Early Response) ---
+  // 发送 Headers 和 Padding，防止 Vercel 超时 (ERR_TIMED_OUT)
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+
+  // 立即写出建立连接的消息和 Padding 冲刷代理缓存
+  res.write(": connection established\n\n");
+  res.write(": " + " ".repeat(2048) + "\n\n");
+  if (res.flush) res.flush();
+
   const { data } = req.body;
 
-  if (!data || !data.throws || data.throws.length !== 6) {
-    return res.status(400).json({ error: 'Invalid divination data' });
-  }
-
-  // 1. JWT 鉴权
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: '未授权，请先登录' });
-  }
-  const token = authHeader.split(' ')[1];
-
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return res.status(500).json({ error: '服务端未配置 Supabase 环境变量' });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !user) {
-    return res.status(401).json({ error: '认证失效，请重新登录' });
-  }
-
-  // 2. 次数限制校验
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile) {
-    return res.status(403).json({ error: '无法获取用户档案' });
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const { count } = await supabase
-    .from('divination_records')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .gte('created_at', today.toISOString());
-
-  const used = count || 0;
-  const totalAllowed = profile.daily_limit + profile.extra_uses;
-
-  if (used >= totalAllowed) {
-    return res.status(403).json({ error: '今日起卦次数已用尽，天道忌盈。' });
-  }
-
-  // 3. 执行 AI 解卜
   try {
+    if (!data || !data.throws || data.throws.length !== 6) {
+      res.write(`data: ${JSON.stringify({ e: '卦象数据异常' })}\n\n`);
+      return res.end();
+    }
+
+    // 1. JWT 鉴权
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.write(`data: ${JSON.stringify({ e: '未授权，请先登录' })}\n\n`);
+      return res.end();
+    }
+    const token = authHeader.split(' ')[1];
+
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      res.write(`data: ${JSON.stringify({ e: '服务端配置异常' })}\n\n`);
+      return res.end();
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      res.write(`data: ${JSON.stringify({ e: '认证失效，请重新登录' })}\n\n`);
+      return res.end();
+    }
+
+    // 2. 次数限制校验
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile) {
+      res.write(`data: ${JSON.stringify({ e: '无法获取用户档案' })}\n\n`);
+      return res.end();
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const { count } = await supabase
+      .from('divination_records')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', today.toISOString());
+
+    const used = count || 0;
+    const totalAllowed = profile.daily_limit + profile.extra_uses;
+
+    if (used >= totalAllowed) {
+      res.write(`data: ${JSON.stringify({ e: '今日起卦次数已用尽，天道忌盈' })}\n\n`);
+      return res.end();
+    }
+
+    // 3. 执行 AI 解卜
     const originalHex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
     const changedHex = data.throws.map(t => {
       if (t.lineType === 'old_yang') return '0';
@@ -100,57 +118,38 @@ ${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType === 'old_yang' ? '�
 
     const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: '服务端未配置 API Key' });
+      res.write(`data: ${JSON.stringify({ e: '服务端 API Key 未配置' })}\n\n`);
+      return res.end();
     }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${apiKey}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: "你是一位隐脉相传的顶级周易玄学宗师，语言不落俗套，文辞高深玄奥、直指问题本质。回答严格按照提供的段落输出，去除所有多余寒暄。" }]
         },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: finalPrompt }]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7
-        }
+        contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+        generationConfig: { temperature: 0.7 }
       })
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      return res.status(response.status).json({ error: `大模型请求异常: ${response.status} - ${errorText}` });
+      res.write(`data: ${JSON.stringify({ e: `大师精神不振 (Code: ${response.status})` })}\n\n`);
+      return res.end();
     }
 
-    // 终极方案：回归最标准的 SSE，利用其在代理层的“免缓冲”特权
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('X-Accel-Buffering', 'no');
-
-    // 立即写出 headers，许多 API 框架在调用第一次 write 前不会真正发送 headers
-    // 这一步对于触发前端的 onStart (及 App.tsx 的转场) 至关重要
-    res.write(": connection established\n\n");
-    if (res.flush) res.flush();
-
-    // SSE 注释格式的 Padding (2KB)，强制冲开所有中间层缓冲
-    res.write(": " + " ".repeat(2048) + "\n\n");
-    if (res.flush) res.flush();
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let aiBuffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || "";
+      aiBuffer += decoder.decode(value, { stream: true });
+      const lines = aiBuffer.split('\n');
+      aiBuffer = lines.pop() || "";
 
       for (let line of lines) {
         const trimmed = line.trim();
@@ -163,7 +162,6 @@ ${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType === 'old_yang' ? '�
           const json = JSON.parse(jsonStr);
           const content = json.candidates?.[0]?.content?.parts?.[0]?.text || "";
           if (content) {
-            // 包装成标准 SSE data 格式发送给前端
             res.write(`data: ${JSON.stringify({ t: content })}\n\n`);
             if (res.flush) res.flush();
           }
@@ -175,8 +173,7 @@ ${data.throws.map((t, i) => `  第${i + 1}爻: ${t.lineType === 'old_yang' ? '�
 
   } catch (err) {
     console.error("Vercel Serverless Function Error:", err);
-    if (!res.writableEnded) {
-      return res.status(500).json({ error: "服务器内部错误，感应阻塞。" });
-    }
+    res.write(`data: ${JSON.stringify({ e: '感应阻塞，请稍后再试' })}\n\n`);
+    res.end();
   }
 }

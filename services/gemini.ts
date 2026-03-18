@@ -58,13 +58,23 @@ export const interpretDivination = async (
 
         try {
           const json = JSON.parse(dataStr);
-          const chunk = json.t || ""; // 使用我们在 divine.js 中定义的 't' 字段
+          
+          // 如果后端传回了错误信息字段 'e'
+          if (json.e) {
+            throw new Error(json.e);
+          }
+
+          const chunk = json.t || ""; // AI 内容字段 't'
           if (chunk) {
             resultText += chunk;
             if (onUpdate) onUpdate(chunk); // 仅传回增量
           }
         } catch (e) {
-          // 如果解析失败，可能是这一行还没传全，暂时忽略，下一段会补齐
+          // 如果是我们手动抛出的错误，继续抛出
+          if (e instanceof Error && (e.message.includes('未授权') || e.message.includes('次数已用尽') || e.message.includes('异常') || e.message.includes('感应') || e.message.includes('精神不振'))) {
+            throw e;
+          }
+          // 其他解析错误可能是行未读全，忽略
         }
       }
     }
