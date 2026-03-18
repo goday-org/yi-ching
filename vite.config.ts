@@ -39,6 +39,18 @@ function localApiPlugin(): Plugin {
                 res.statusCode = code; 
                 return mockRes; 
             };
+            mockRes.setHeader = (name: string, value: string) => {
+              res.setHeader(name, value);
+              return mockRes;
+            };
+            mockRes.write = (chunk: any) => {
+              res.write(chunk);
+              return true;
+            };
+            mockRes.end = (chunk?: any) => {
+              res.end(chunk);
+              return mockRes;
+            };
             mockRes.json = (data: any) => {
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify(data));

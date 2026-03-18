@@ -155,17 +155,13 @@ const App: React.FC = () => {
               if (typingTimerRef.current) clearInterval(typingTimerRef.current);
               typingTimerRef.current = null;
             }
-          }, 30); // 30ms 速度适中
+          }, 50); // 每 50ms 出一个字，体验更加从容平滑
         }
       );
       
-      // 流彻底结束，记录结果并更新 UI 状态
+      // 流彻底结束，仅更新引用状态，计时器由内部判断 queue 是否清空后自清理
       streamingRef.current = false;
       setStreaming(false);
-      if (typingTimerRef.current) {
-        clearInterval(typingTimerRef.current);
-        typingTimerRef.current = null;
-      }
 
       if (!result && !hasStarted) {
         setResultText("大师目前繁忙，未能给出批复。");
