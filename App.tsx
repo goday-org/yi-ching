@@ -418,12 +418,6 @@ const App: React.FC = () => {
                   {getOriginalHexName()}
                 </h2>
               </div>
-              <button 
-                onClick={reset} 
-                className="px-8 py-3 border border-[#111111] dark:border-[#EFEFEF] bg-transparent text-[#111111] dark:text-[#EFEFEF] hover:bg-[#111111] hover:text-[#F5F5F0] dark:hover:bg-[#EFEFEF] dark:hover:text-[#080808] transition-colors duration-500 text-xs font-bold tracking-[0.5em] shrink-0 animate-in fade-in duration-1000"
-              >
-                谢 卦
-              </button>
             </div>
             
             <div 
