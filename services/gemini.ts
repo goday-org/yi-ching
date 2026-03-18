@@ -25,12 +25,12 @@ export const interpretDivination = async (
       body: JSON.stringify({ data })
     });
 
+    if (onStart) onStart();
+
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error || `AI 服务感应中断 (Code: ${response.status})，请稍后再试。`);
     }
-
-    if (onStart) onStart();
 
     if (!response.body) {
       throw new Error("天地无感，虚空无语。");

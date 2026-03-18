@@ -107,12 +107,23 @@ export const getProfile = async (userId: string): Promise<UserProfile | null> =>
 };
 
 /**
- * 获取当前登录用户及档案
+ * 获取当前登录用户及档案（带 1s 超时保护）
  */
 export const getCurrentUser = async (): Promise<UserProfile | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  return getProfile(user.id);
+  try {
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error('Auth Timeout')), 1000)
+    );
+    
+    const userPromise = supabase.auth.getUser().then(({ data: { user } }) => user);
+    
+    const user = await Promise.race([userPromise, timeoutPromise]);
+    if (!user) return null;
+    return getProfile(user.id);
+  } catch (err) {
+    console.warn('getCurrentUser failed or timed out:', err);
+    return null;
+  }
 };
 
 /**
@@ -126,9 +137,20 @@ export const updatePassword = async (newPassword: string): Promise<void> => {
 };
 
 /**
- * 获取当前会话 JWT Token（用于 API 请求认证）
+ * 获取当前会话 JWT Token（带超时保护，防止 Supabase 服务不通导致全站卡死）
  */
 export const getAccessToken = async (): Promise<string | null> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token || null;
+  try {
+    // 1秒超时竞争
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error('Auth Timeout')), 1000)
+    );
+    
+    const sessionPromise = supabase.auth.getSession().then(({ data }) => data.session?.access_token || null);
+    
+    return await Promise.race([sessionPromise, timeoutPromise]);
+  } catch (err) {
+    console.warn('Supabase auth failed or timed out, proceeding as guest');
+    return null;
+  }
 };

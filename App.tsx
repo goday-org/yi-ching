@@ -125,16 +125,16 @@ const App: React.FC = () => {
     setStreaming(false);
     setError(null);
     setResultText(""); 
+    setStep(AppStep.RESULT); // 立即进入结果页，利用纸张展开动画掩盖首字节延迟
     
     try {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
       let hasStarted = false;
-      charQueueRef.current = []; // 重置队列
+      charQueueRef.current = []; 
       
       const result = await interpretDivination(data, 
         (chunk) => {
-          // 将增量推入 Ref 维护的队列
           charQueueRef.current.push(...chunk.split(""));
         },
         () => {
@@ -142,16 +142,13 @@ const App: React.FC = () => {
           setLoading(false);
           setStreaming(true);
           streamingRef.current = true;
-          setStep(AppStep.RESULT);
 
-          // 核心修复：定时器逻辑。只在这里开启一次。
           if (typingTimerRef.current) clearInterval(typingTimerRef.current);
           typingTimerRef.current = setInterval(() => {
             if (charQueueRef.current.length > 0) {
               const nextChar = charQueueRef.current.shift();
               setResultText(prev => prev + (nextChar || ""));
             } else if (!streamingRef.current) {
-              // 只有当流彻底结束且队列清空，才安全退出定时器
               if (typingTimerRef.current) clearInterval(typingTimerRef.current);
               typingTimerRef.current = null;
             }
@@ -159,13 +156,12 @@ const App: React.FC = () => {
         }
       );
       
-      // 网络层结束，仅更新状态。定时器会自行跑完 Ref 中的队列。
       streamingRef.current = false;
       setStreaming(false);
 
-      if (!result && !hasStarted) {
-        setResultText("大师目前繁忙，未能给出批复。");
-        setStep(AppStep.RESULT);
+      // 如果流结束了但一直没开始过（hasStarted 为 false），说明连第一个字都没读到
+      if (!hasStarted) {
+        setResultText("大师正在凝神感应，请稍后再次尝试。");
         setLoading(false);
       }
       
@@ -431,25 +427,34 @@ const App: React.FC = () => {
               </div>
 
               <div className="prose prose-invert prose-premium max-w-none">
+                {resultText === "" && (loading || streaming) && (
+                  <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-1000">
+                    <div className="w-8 h-8 border-t-2 border-[#8B1D1D] dark:border-[#A32626] rounded-full animate-spin mb-6 opacity-40"></div>
+                    <p className="text-sm text-black/40 dark:text-white/40 font-serif tracking-[0.3em] animate-pulse">
+                      大师正在凝神感应，请屏息以待...
+                    </p>
+                  </div>
+                )}
                 {resultText.split('\n').map((line, i, arr) => {
                   const isHeader = line.startsWith('#');
                   const cleanLine = line.replace(/#/g, '').trim();
                   const isLastLine = i === arr.length - 1;
                   
                   if (!cleanLine && !isLastLine) return <div key={i} className="h-4"></div>;
+                  if (!cleanLine && isLastLine && resultText !== "") return null;
                   
                   return isHeader ? (
                     <h3 key={i} className="text-xl md:text-2xl font-serif font-bold mb-4 mt-10 animate-in fade-in duration-500">
                       {cleanLine}
                     </h3>
-                  ) : (
+                  ) : cleanLine ? (
                     <p key={i} className="text-[#333333] dark:text-[rgba(239,239,239,0.85)] text-base md:text-lg leading-loose mb-4 text-justify font-sans font-light tracking-wide inline-block w-full">
                       <span className="animate-in fade-in duration-300">{cleanLine}</span>
-                      {isLastLine && streaming && (
+                      {isLastLine && (streaming || charQueueRef.current.length > 0) && (
                         <span className="inline-block w-1.5 h-5 ml-1 align-middle bg-[#8B1D1D] dark:bg-[#A32626] animate-pulse"></span>
                       )}
                     </p>
-                  );
+                  ) : null;
                 })}
                 {/* 仅在接收完成后展示天道忌盈的结语 */}
                 {!streaming && resultText.length > 0 && (

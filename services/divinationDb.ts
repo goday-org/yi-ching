@@ -8,14 +8,26 @@ export const getTodayUsageCount = async (userId: string): Promise<number> => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const { count, error } = await supabase
-    .from('divination_records')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .gte('created_at', today.toISOString());
+  try {
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error('DB Timeout')), 3000)
+    );
+    
+    const queryPromise = supabase
+      .from('divination_records')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', today.toISOString())
+      .then(({ count, error }) => {
+        if (error) throw error;
+        return count || 0;
+      });
 
-  if (error) throw new Error('查询次数失败');
-  return count || 0;
+    return await Promise.race([queryPromise, timeoutPromise]) as number;
+  } catch (err) {
+    console.warn('getTodayUsageCount failed or timed out:', err);
+    return 0; // 发生错误或超时，默认返回 0 保证流程不卡死
+  }
 };
 
 /**
@@ -38,21 +50,33 @@ export const saveDivinationRecord = async (
   hexagram: string,
   result: string
 ): Promise<DivinationRecord> => {
-  const { data, error } = await supabase
-    .from('divination_records')
-    .insert({
-      user_id: userId,
-      type: divinationData.type,
-      question: divinationData.question,
-      hexagram,
-      result,
-      throws_data: divinationData.throws,
-    })
-    .select()
-    .single();
+  try {
+    const timeoutPromise = new Promise<null>((_, reject) => 
+      setTimeout(() => reject(new Error('Save Timeout')), 3000)
+    );
 
-  if (error) throw new Error(`保存卜卦记录失败：${error.message}`);
-  return data as DivinationRecord;
+    const insertPromise = supabase
+      .from('divination_records')
+      .insert({
+        user_id: userId,
+        type: divinationData.type,
+        question: divinationData.question,
+        hexagram,
+        result,
+        throws_data: divinationData.throws,
+      })
+      .select()
+      .single()
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data as DivinationRecord;
+      });
+
+    return await Promise.race([insertPromise, timeoutPromise]) as DivinationRecord;
+  } catch (err) {
+    console.error('saveDivinationRecord failed or timed out:', err);
+    throw new Error('保存记录失败，请检查网络连接');
+  }
 };
 
 /**
