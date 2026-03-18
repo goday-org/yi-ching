@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">周易六爻算卦</string>
+    <string name="title_activity_main">周易六爻算卦</string>
+    <string name="package_name">ltd.brand_new.yi</string>
+    <string name="custom_url_scheme">ltd.brand_new.yi</string>
+</resources>

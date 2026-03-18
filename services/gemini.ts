@@ -19,7 +19,7 @@ export const interpretDivination = async (
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch("/api/divine", {
+    const response = await fetch("https://yi.brand-new.ltd/api/divine", {
       method: "POST",
       headers,
       body: JSON.stringify({ data })

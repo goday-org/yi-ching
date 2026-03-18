@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
         localApiPlugin(),
         VitePWA({
           registerType: 'autoUpdate',
-          includeAssets: ['icon.svg'],
+          includeAssets: ['logo.png'],
           manifest: {
             name: '周易六爻算卦',
             short_name: '卜卦',
@@ -93,9 +93,9 @@ export default defineConfig(({ mode }) => {
             display: 'standalone',
             icons: [
               {
-                src: '/icon.svg',
-                sizes: '192x192 512x512',
-                type: 'image/svg+xml',
+                src: '/logo.png',
+                sizes: '512x512',
+                type: 'image/png',
                 purpose: 'any maskable'
               }
             ]

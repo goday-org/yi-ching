@@ -6,17 +6,41 @@ const HEXAGRAM_NAMES = {
 };
 
 export default async function handler(req, res) {
+  // --- 跨域处理 (CORS) ---
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost',
+    'capacitor://localhost',
+    'https://yi.brand-new.ltd'
+  ];
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // 兜底允许，或根据需要收紧
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  // 处理预检请求 (Preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   // --- 立即响应策略 (Early Response) ---
-  // 使用 writeHead 强制立即写出，防止 Vercel/中间代理缓冲 Headers
   res.writeHead(200, {
     'Content-Type': 'text/event-stream; charset=utf-8',
     'Cache-Control': 'no-cache, no-transform',
     'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no'
+    'X-Accel-Buffering': 'no',
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : '*'
   });
 
   // 立即写出 4KB Padding，确保穿透所有中间代理的缓冲区 (如 Cloudflare, Vercel Edge)
