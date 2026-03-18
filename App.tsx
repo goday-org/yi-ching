@@ -113,28 +113,48 @@ const App: React.FC = () => {
     setStep(AppStep.DIVINATION);
   };
 
+  const [streaming, setStreaming] = useState<boolean>(false);
+  
   const handleDivinationComplete = async (throws: ThrowResult[]) => {
     const data: DivinationData = { ...formData, throws };
     setDivinationData(data);
     setLoading(true);
+    setStreaming(false);
     setError(null);
+    setResultText(""); 
     
     try {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
       
-      const result = await interpretDivination(data);
-      setResultText(result || "大师目前繁忙，未能给出批复。");
+      let firstChunk = true;
+      const result = await interpretDivination(data, (text) => {
+        if (firstChunk) {
+          setLoading(false);
+          setStreaming(true);
+          setStep(AppStep.RESULT);
+          firstChunk = false;
+        }
+        setResultText(text);
+      });
+      
+      setStreaming(false);
+
+      if (!result && firstChunk) {
+        setResultText("大师目前繁忙，未能给出批复。");
+        setStep(AppStep.RESULT);
+        setLoading(false);
+      }
       
       if (profile && result) {
-        await saveDivinationRecord(profile.id, data, hexName, result);
-        await refreshQuota();
+        saveDivinationRecord(profile.id, data, hexName, result).then(() => {
+          refreshQuota();
+        }).catch(err => console.error("Save record error:", err));
       }
-      setStep(AppStep.RESULT);
     } catch (err: any) {
       setError(err instanceof Error ? err.message : "连接天地失败，请重试");
-    } finally {
       setLoading(false);
+      setStreaming(false);
     }
   };
 
@@ -165,6 +185,14 @@ const App: React.FC = () => {
     const hex = divinationData.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
     return HEXAGRAM_NAMES[hex] || "未知卦";
   };
+
+  const resultScrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (streaming && resultScrollRef.current) {
+      resultScrollRef.current.scrollTop = resultScrollRef.current.scrollHeight;
+    }
+  }, [resultText, streaming]);
 
   if (authLoading) {
     return (
@@ -364,7 +392,10 @@ const App: React.FC = () => {
               </button>
             </div>
             
-            <div className="overflow-y-auto pr-4 space-y-8 custom-scrollbar pb-12 flex-1">
+            <div 
+              ref={resultScrollRef}
+              className="overflow-y-auto pr-4 space-y-8 custom-scrollbar pb-12 flex-1 scroll-smooth"
+            >
               <div className="bg-black/5 dark:bg-white/5 p-8 border border-black/10 dark:border-white/10">
                 <p className="text-black/50 dark:text-white/50 text-xs tracking-widest mb-4 font-bold border-b border-black/10 dark:border-white/10 pb-2 inline-block">所问之事</p>
                 <div className="italic text-[#111111] dark:text-[#EFEFEF] font-serif text-lg leading-relaxed">
@@ -373,18 +404,23 @@ const App: React.FC = () => {
               </div>
 
               <div className="prose prose-invert prose-premium max-w-none">
-                {resultText.split('\n').map((line, i) => {
+                {resultText.split('\n').map((line, i, arr) => {
                   const isHeader = line.startsWith('#');
                   const cleanLine = line.replace(/#/g, '').trim();
-                  if (!cleanLine) return <div key={i} className="h-4"></div>;
+                  const isLastLine = i === arr.length - 1;
+                  
+                  if (!cleanLine && !isLastLine) return <div key={i} className="h-4"></div>;
                   
                   return isHeader ? (
                     <h3 key={i} className="text-xl md:text-2xl font-serif font-bold mb-4 mt-10">
                       {cleanLine}
                     </h3>
                   ) : (
-                    <p key={i} className="text-[#333333] dark:text-[rgba(239,239,239,0.85)] text-base md:text-lg leading-loose mb-4 text-justify font-sans font-light tracking-wide">
+                    <p key={i} className="text-[#333333] dark:text-[rgba(239,239,239,0.85)] text-base md:text-lg leading-loose mb-4 text-justify font-sans font-light tracking-wide inline-block w-full">
                       {cleanLine}
+                      {isLastLine && streaming && (
+                        <span className="inline-block w-1.5 h-5 ml-1 align-middle bg-[#8B1D1D] dark:bg-[#A32626] animate-pulse"></span>
+                      )}
                     </p>
                   );
                 })}

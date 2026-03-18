@@ -34,16 +34,14 @@ function localApiPlugin(): Plugin {
               body,
             };
 
-            let statusCode = 200;
-            let responseBody = '';
-            const mockRes = {
-              status(code: number) { statusCode = code; return mockRes; },
-              json(data: any) {
-                responseBody = JSON.stringify(data);
-                res.setHeader('Content-Type', 'application/json');
-                res.writeHead(statusCode);
-                res.end(responseBody);
-              },
+            const mockRes = res as any;
+            mockRes.status = (code: number) => { 
+                res.statusCode = code; 
+                return mockRes; 
+            };
+            mockRes.json = (data: any) => {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify(data));
             };
 
             // 动态 require（每次清除缓存确保 hot reload）
