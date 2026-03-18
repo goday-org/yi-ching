@@ -116,6 +116,7 @@ const App: React.FC = () => {
   const [streaming, setStreaming] = useState<boolean>(false);
   const streamingRef = React.useRef<boolean>(false);
   const typingTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const charQueueRef = React.useRef<string[]>([]);
   
   const handleDivinationComplete = async (throws: ThrowResult[]) => {
     const data: DivinationData = { ...formData, throws };
@@ -129,37 +130,36 @@ const App: React.FC = () => {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
       let hasStarted = false;
-      const charQueue: string[] = []; // 字符缓冲队列
-      let fullText = ""; // 记录已接收的所有文本
+      charQueueRef.current = []; // 重置队列
       
       const result = await interpretDivination(data, 
         (chunk) => {
-          // 将新收到的数据包拆解成单个字符存入队列
-          charQueue.push(...chunk.split(""));
-          fullText += chunk;
+          // 将增量推入 Ref 维护的队列
+          charQueueRef.current.push(...chunk.split(""));
         },
         () => {
           hasStarted = true;
           setLoading(false);
           setStreaming(true);
-          streamingRef.current = true; // 设置流开始
+          streamingRef.current = true;
           setStep(AppStep.RESULT);
 
-          // 开启平滑打字计时器
+          // 核心修复：定时器逻辑。只在这里开启一次。
+          if (typingTimerRef.current) clearInterval(typingTimerRef.current);
           typingTimerRef.current = setInterval(() => {
-            if (charQueue.length > 0) {
-              const nextChar = charQueue.shift();
+            if (charQueueRef.current.length > 0) {
+              const nextChar = charQueueRef.current.shift();
               setResultText(prev => prev + (nextChar || ""));
             } else if (!streamingRef.current) {
-              // 如果队列空了且流已结束，清除计时器
+              // 只有当流彻底结束且队列清空，才安全退出定时器
               if (typingTimerRef.current) clearInterval(typingTimerRef.current);
               typingTimerRef.current = null;
             }
-          }, 50); // 每 50ms 出一个字，体验更加从容平滑
+          }, 50); 
         }
       );
       
-      // 流彻底结束，仅更新引用状态，计时器由内部判断 queue 是否清空后自清理
+      // 网络层结束，仅更新状态。定时器会自行跑完 Ref 中的队列。
       streamingRef.current = false;
       setStreaming(false);
 

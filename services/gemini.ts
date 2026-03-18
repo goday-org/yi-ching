@@ -39,49 +39,30 @@ export const interpretDivination = async (
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let resultText = "";
-    let buffer = "";
+    let isPaddingRemoved = false;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || "";
+      let chunk = decoder.decode(value, { stream: true });
+      
+      // 移除开头的 8192 字节 Padding
+      if (!isPaddingRemoved) {
+        chunk = chunk.trimStart(); // 移除空格和首行换行
+        if (chunk) isPaddingRemoved = true;
+      }
 
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
-        
-        const dataStr = trimmedLine.slice(6);
-        if (dataStr === "[DONE]") continue;
-
-        try {
-          const json = JSON.parse(dataStr);
-          const chunk = json.text || "";
-          if (chunk) {
-            resultText += chunk;
-            if (onUpdate) onUpdate(chunk); // 仅传回增量
-          }
-        } catch (e) {
-          // 忽略格式不完整的行，等待下一块拼接
-        }
+      if (chunk) {
+        resultText += chunk;
+        if (onUpdate) onUpdate(chunk); // 仅传回清洗后的增量
       }
     }
     
-    // 处理流结束后的残留 buffer
     const tail = decoder.decode();
-    if (tail) buffer += tail;
-    
-    if (buffer.startsWith("data: ")) {
-       try {
-         const json = JSON.parse(buffer.slice(6));
-         const chunk = json.text || "";
-         if (chunk) {
-            resultText += chunk;
-            if (onUpdate) onUpdate(chunk);
-         }
-       } catch (e) {}
+    if (tail) {
+      resultText += tail.trimStart();
+      if (onUpdate) onUpdate(tail.trimStart());
     }
 
     return resultText;
