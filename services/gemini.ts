@@ -59,22 +59,17 @@ export const interpretDivination = async (
         try {
           const json = JSON.parse(dataStr);
           
-          // 如果后端传回了错误信息字段 'e'
           if (json.e) {
             throw new Error(json.e);
           }
 
-          const chunk = json.t || ""; // AI 内容字段 't'
+          const chunk = json.t || ""; 
           if (chunk) {
             resultText += chunk;
-            if (onUpdate) onUpdate(chunk); // 仅传回增量
+            if (onUpdate) onUpdate(chunk); 
           }
         } catch (e) {
-          // 如果是我们手动抛出的错误，继续抛出
-          if (e instanceof Error && (e.message.includes('未授权') || e.message.includes('次数已用尽') || e.message.includes('异常') || e.message.includes('感应') || e.message.includes('精神不振'))) {
-            throw e;
-          }
-          // 其他解析错误可能是行未读全，忽略
+          if (e instanceof Error) throw e;
         }
       }
     }

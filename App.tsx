@@ -129,6 +129,7 @@ const App: React.FC = () => {
     setResultText(""); 
     setStep(AppStep.RESULT); 
     
+    let receivedAny = false;
     try {
       const hex = data.throws.map(t => (t.lineType === 'yang' || t.lineType === 'old_yang' ? '1' : '0')).join('');
       const hexName = HEXAGRAM_NAMES[hex] || "未知卦";
@@ -136,6 +137,7 @@ const App: React.FC = () => {
       charQueueRef.current = [];
       const result = await interpretDivination(data, 
         (chunk) => {
+          receivedAny = true;
           setIsAiResponding(true);
           charQueueRef.current.push(...chunk.split(""));
         },
@@ -160,9 +162,9 @@ const App: React.FC = () => {
       streamingRef.current = false;
       setStreaming(false);
 
-      // 如果流结束了但一直没开始过（isAiResponding 为 false），说明连第一个字都没读到
-      if (!isAiResponding) {
-        setResultText("大师正在凝神感应，请稍后再次尝试。");
+      // 如果流结束了但一直没开始过（receivedAny 为 false），说明连第一个字都没读到
+      if (!receivedAny) {
+        setResultText("### ！！！感应中断\n大师正在凝神感应，但天地正气波动剧烈，请屏息片刻后再次尝试。");
         setLoading(false);
       }
       
@@ -172,9 +174,16 @@ const App: React.FC = () => {
         }).catch(err => console.error("Save record error:", err));
       }
     } catch (err: any) {
-      setError(err instanceof Error ? err.message : "连接天地失败，请重试");
+      const errMsg = err instanceof Error ? err.message : "连接天地失败，请重试";
+      // 如果已经进入结果页，直接把错误显示在纸上
+      if (step === AppStep.RESULT) {
+        setResultText(prev => prev + "\n\n### ！！！感应中断\n" + errMsg);
+      } else {
+        setError(errMsg);
+      }
       setLoading(false);
       setStreaming(false);
+      setIsAiResponding(false);
     }
   };
 
