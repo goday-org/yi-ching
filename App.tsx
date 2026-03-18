@@ -452,8 +452,13 @@ const App: React.FC = () => {
                          <span className="text-xl font-serif text-[#8B1D1D] dark:text-[#A32626] zen-text-fade">感</span>
                        </div>
                     </div>
-                    <p className="text-sm text-black/40 dark:text-white/40 font-serif tracking-[0.3em] zen-text-fade">
-                      大师正在凝神感应，请屏息以待...
+                    <p className="text-sm text-black/40 dark:text-white/40 font-serif tracking-[0.3em] zen-text-fade flex items-center justify-center">
+                      大师正在凝神感应，请屏息以待
+                      <span className="inline-flex ml-1 tracking-normal">
+                        <span className="loading-dot">.</span>
+                        <span className="loading-dot">.</span>
+                        <span className="loading-dot">.</span>
+                      </span>
                     </p>
                   </div>
                 )}
