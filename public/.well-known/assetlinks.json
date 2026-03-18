@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "ltd.brand_new.yi",
+    "sha256_cert_fingerprints": ["57:D5:FE:75:62:29:0F:72:4E:6A:E0:5F:A3:15:C4:DB:84:A4:08:FA:5B:80:64:94:3B:35:6C:F2:0A:54:82:18"]
+  }
+}]
