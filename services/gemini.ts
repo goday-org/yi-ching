@@ -39,30 +39,34 @@ export const interpretDivination = async (
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let resultText = "";
-    let isPaddingRemoved = false;
+    let lineBuffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      let chunk = decoder.decode(value, { stream: true });
-      
-      // 移除开头的 8192 字节 Padding
-      if (!isPaddingRemoved) {
-        chunk = chunk.trimStart(); // 移除空格和首行换行
-        if (chunk) isPaddingRemoved = true;
-      }
+      lineBuffer += decoder.decode(value, { stream: true });
+      const lines = lineBuffer.split('\n');
+      lineBuffer = lines.pop() || "";
 
-      if (chunk) {
-        resultText += chunk;
-        if (onUpdate) onUpdate(chunk); // 仅传回清洗后的增量
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data: ")) continue;
+        
+        const dataStr = trimmed.slice(6);
+        if (dataStr === "[DONE]") continue;
+
+        try {
+          const json = JSON.parse(dataStr);
+          const chunk = json.t || ""; // 使用我们在 divine.js 中定义的 't' 字段
+          if (chunk) {
+            resultText += chunk;
+            if (onUpdate) onUpdate(chunk); // 仅传回增量
+          }
+        } catch (e) {
+          // 如果解析失败，可能是这一行还没传全，暂时忽略，下一段会补齐
+        }
       }
-    }
-    
-    const tail = decoder.decode();
-    if (tail) {
-      resultText += tail.trimStart();
-      if (onUpdate) onUpdate(tail.trimStart());
     }
 
     return resultText;
