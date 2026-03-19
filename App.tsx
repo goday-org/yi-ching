@@ -43,7 +43,8 @@ const App: React.FC = () => {
           setProfile(user);
           const q = await checkQuota(user);
           setQuota(q);
-          setStep(AppStep.LANDING);
+          // 仅在初始化且未加载完成时设置 Landing
+          if (authLoading) setStep(AppStep.LANDING);
         } else {
           setStep(AppStep.AUTH);
         }
@@ -54,6 +55,11 @@ const App: React.FC = () => {
       }
     };
     initAuth();
+  }, []); // 仅在挂载时运行一次初始认证
+
+  // 独立处理推送初始化
+  useEffect(() => {
+    if (!profile) return;
 
     // 初始化极光推送 (JPush - Android App)
     const initJPush = async () => {
@@ -65,6 +71,12 @@ const App: React.FC = () => {
         if (typeof JPush.init === 'function') {
            // @ts-ignore
            await JPush.init();
+        }
+        // 请求权限 (Android 13+)
+        // @ts-ignore
+        if (typeof JPush.requestPermissions === 'function') {
+           // @ts-ignore
+           await JPush.requestPermissions();
         }
         console.log('JPush Android initialized');
       } catch (err) {
@@ -81,7 +93,26 @@ const App: React.FC = () => {
           // @ts-ignore
           notifyButton: {
             enable: true,
+            size: 'medium',
+            position: 'bottom-right',
+            offset: { bottom: '20px', left: '0px', right: '20px' },
+            displayPredicate: () => true,
+            showCredit: false,
+            // @ts-ignore
+            text: {
+              'tip.state.unsubscribed': '订阅通知',
+              'tip.state.subscribed': '已订阅',
+              'tip.state.blocked': '已屏蔽通知',
+              'message.action.subscribed': '感谢您的订阅！',
+              'message.action.resubscribed': '您已重新订阅',
+              'message.action.unsubscribed': '您已取消订阅',
+            }
           },
+          welcomeNotification: {
+            disable: false,
+            title: "订阅成功",
+            message: "感谢您的订阅！"
+          }
         });
         console.log('OneSignal initialized');
       } catch (err) {
@@ -92,6 +123,21 @@ const App: React.FC = () => {
     initJPush();
     initOneSignal();
   }, [profile]);
+
+  const handleSubscribe = async () => {
+    try {
+      // @ts-ignore
+      if (typeof OneSignal.registerForPushNotifications === 'function') {
+        // @ts-ignore
+        await OneSignal.registerForPushNotifications();
+      } else {
+        // @ts-ignore
+        await OneSignal.showNativePrompt();
+      }
+    } catch (err) {
+      console.warn('Subscription error:', err);
+    }
+  };
 
   const toggleTheme = () => {
     const root = document.documentElement;
@@ -301,6 +347,7 @@ const App: React.FC = () => {
             onViewHistory={() => setStep(AppStep.HISTORY)}
             onViewAdmin={() => setStep(AppStep.ADMIN)}
             onChangePassword={() => setShowPasswordModal(true)}
+            onSubscribe={handleSubscribe}
           />
         )}
 
