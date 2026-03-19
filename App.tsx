@@ -16,7 +16,7 @@ import { JPush } from 'capacitor-plugin-jpush';
 import OneSignal from 'react-onesignal';
 
 const App: React.FC = () => {
-  const [isDark, setIsDark] = useState<boolean>(true);
+  const [isDark, setIsDark] = useState<boolean>(() => document.documentElement.classList.contains('dark'));
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -35,7 +35,23 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'));
+    // 监听系统主题变化
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      const storedTheme = localStorage.getItem('theme');
+      if (!storedTheme) {
+        if (e.matches) {
+          document.documentElement.classList.add('dark');
+          setIsDark(true);
+        } else {
+          document.documentElement.classList.remove('dark');
+          setIsDark(false);
+        }
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
     const initAuth = async () => {
       try {
         const user = await getCurrentUser();
@@ -68,9 +84,15 @@ const App: React.FC = () => {
         // @ts-ignore
         await JPush.setDebugMode(false);
         // @ts-ignore
-        if (typeof JPush.init === 'function') {
+        if (typeof JPush.startJPush === 'function') {
            // @ts-ignore
-           await JPush.init();
+           await JPush.startJPush();
+           // 设置别名，确保可以针对特定用户推送
+           // @ts-ignore
+           if (typeof JPush.setAlias === 'function') {
+             // @ts-ignore
+             await JPush.setAlias({ alias: profile.id });
+           }
         }
         // 请求权限 (Android 13+)
         // @ts-ignore
@@ -78,9 +100,8 @@ const App: React.FC = () => {
            // @ts-ignore
            await JPush.requestPermissions();
         }
-        console.log('JPush Android initialized');
       } catch (err) {
-        console.warn('JPush Android initialization failed:', err);
+        // 静默处理初始化错误
       }
     };
 
@@ -114,9 +135,15 @@ const App: React.FC = () => {
             message: "感谢您的订阅！"
           }
         });
-        console.log('OneSignal initialized');
+        
+        // 设置 OneSignal 的外部用户 ID (v16+ 使用 login)
+        // @ts-ignore
+        if (typeof OneSignal.login === 'function') {
+          // @ts-ignore
+          await OneSignal.login(profile.id);
+        }
       } catch (err) {
-        console.warn('OneSignal initialization failed:', err);
+        // 静默处理初始化错误
       }
     };
 
