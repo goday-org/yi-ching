@@ -164,7 +164,9 @@ const AdminPage: React.FC<AdminPageProps> = ({ onBack }) => {
                 </thead>
                 <tbody className="divide-y divide-black/10 dark:divide-white/10">
                   {profiles.map(p => {
-                    const totalAllowed = p.daily_limit + p.extra_uses;
+                    // 修正显示逻辑：总额度应包含今日已消耗的额外次数，避免显示成 2/1 这种奇怪的情况
+                    const extraConsumedToday = Math.max(0, p.todayCount - p.daily_limit);
+                    const totalAllowed = p.daily_limit + p.extra_uses + extraConsumedToday;
                     const isExhausted = p.todayCount >= totalAllowed;
                     
                     return (

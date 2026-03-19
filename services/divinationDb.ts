@@ -40,7 +40,11 @@ export const checkQuota = async (profile: UserProfile): Promise<{ canDivine: boo
   const dailyRemaining = Math.max(0, profile.daily_limit - used);
   // 总剩余量 = 每日剩余赠送 + 额外可用总数
   const remaining = dailyRemaining + profile.extra_uses;
-  const total = profile.daily_limit + profile.extra_uses;
+  
+  // 为了 UI 显示更直观，今日总额 = 每日限额 + (当前额外次数 + 今日已扣除的额外次数)
+  const extraConsumedToday = Math.max(0, used - profile.daily_limit);
+  const total = profile.daily_limit + (profile.extra_uses + extraConsumedToday);
+  
   return { canDivine: remaining > 0, remaining, total };
 };
 
