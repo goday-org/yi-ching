@@ -84,6 +84,10 @@ export default defineConfig(({ mode }) => {
         VitePWA({
           registerType: 'autoUpdate',
           includeAssets: ['logo.png'],
+          workbox: {
+            importScripts: ['/OneSignalSDKWorker.js'],
+            globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}']
+          },
           manifest: {
             name: '周易六爻',
             short_name: '周易六爻',

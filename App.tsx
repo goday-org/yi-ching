@@ -12,6 +12,8 @@ import AdminPage from './components/AdminPage';
 import PasswordModal from './components/PasswordModal';
 import { getCurrentUser } from './services/auth';
 import { checkQuota, saveDivinationRecord } from './services/divinationDb';
+import { JPush } from 'capacitor-plugin-jpush';
+import OneSignal from 'react-onesignal';
 
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(true);
@@ -52,7 +54,44 @@ const App: React.FC = () => {
       }
     };
     initAuth();
-  }, []);
+
+    // 初始化极光推送 (JPush - Android App)
+    const initJPush = async () => {
+      try {
+        // 部分版本插件 setDebugMode 接受对象，部分接受布尔值，根据报错尝试布尔值
+        // @ts-ignore
+        await JPush.setDebugMode(false);
+        // @ts-ignore
+        if (typeof JPush.init === 'function') {
+           // @ts-ignore
+           await JPush.init();
+        }
+        console.log('JPush Android initialized');
+      } catch (err) {
+        console.warn('JPush Android initialization failed:', err);
+      }
+    };
+
+    // 初始化 OneSignal (针对 PWA/Web/iOS)
+    const initOneSignal = async () => {
+      try {
+        await OneSignal.init({
+          appId: '61cd2099-24f2-4f5c-aca0-35badf6debe3',
+          allowLocalhostAsSecureOrigin: true,
+          // @ts-ignore
+          notifyButton: {
+            enable: true,
+          },
+        });
+        console.log('OneSignal initialized');
+      } catch (err) {
+        console.warn('OneSignal initialization failed:', err);
+      }
+    };
+
+    initJPush();
+    initOneSignal();
+  }, [profile]);
 
   const toggleTheme = () => {
     const root = document.documentElement;
