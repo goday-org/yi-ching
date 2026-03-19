@@ -36,8 +36,11 @@ export const getTodayUsageCount = async (userId: string): Promise<number> => {
  */
 export const checkQuota = async (profile: UserProfile): Promise<{ canDivine: boolean; remaining: number; total: number }> => {
   const used = await getTodayUsageCount(profile.id);
+  // 每日赠送次数的剩余量
+  const dailyRemaining = Math.max(0, profile.daily_limit - used);
+  // 总剩余量 = 每日剩余赠送 + 额外可用总数
+  const remaining = dailyRemaining + profile.extra_uses;
   const total = profile.daily_limit + profile.extra_uses;
-  const remaining = Math.max(0, total - used);
   return { canDivine: remaining > 0, remaining, total };
 };
 
@@ -55,22 +58,41 @@ export const saveDivinationRecord = async (
       setTimeout(() => reject(new Error('Save Timeout')), 10000)
     );
 
-    const insertPromise = supabase
-      .from('divination_records')
-      .insert({
-        user_id: userId,
-        type: divinationData.type,
-        question: divinationData.question,
-        hexagram,
-        result,
-        throws_data: divinationData.throws,
-      })
-      .select()
-      .single()
-      .then(({ data, error }) => {
-        if (error) throw error;
-        return data as DivinationRecord;
-      });
+    const insertPromise = (async () => {
+      // 1. 保存记录
+      const { data, error } = await supabase
+        .from('divination_records')
+        .insert({
+          user_id: userId,
+          type: divinationData.type,
+          question: divinationData.question,
+          hexagram,
+          result,
+          throws_data: divinationData.throws,
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+
+      // 2. 检查并消费额外次数 (Extra Uses)
+      // 注意：此时记录已插入，getTodayUsageCount 会包含当前这条记录
+      const usedToday = await getTodayUsageCount(userId);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('daily_limit, extra_uses')
+        .eq('id', userId)
+        .single();
+
+      if (profile && usedToday > profile.daily_limit && profile.extra_uses > 0) {
+        await supabase
+          .from('profiles')
+          .update({ extra_uses: profile.extra_uses - 1 })
+          .eq('id', userId);
+      }
+
+      return data as DivinationRecord;
+    })();
 
     return await Promise.race([insertPromise, timeoutPromise]) as DivinationRecord;
   } catch (err) {

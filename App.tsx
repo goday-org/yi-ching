@@ -69,8 +69,13 @@ const App: React.FC = () => {
 
   const refreshQuota = async () => {
     if (profile) {
-      const q = await checkQuota(profile);
-      setQuota(q);
+      // 重新获取最新的 profile，因为 extra_uses 可能在后端被扣除
+      const latestProfile = await getCurrentUser();
+      if (latestProfile) {
+        setProfile(latestProfile);
+        const q = await checkQuota(latestProfile);
+        setQuota(q);
+      }
     }
   };
 
@@ -92,9 +97,11 @@ const App: React.FC = () => {
       return;
     }
     
-    // 强制刷新一次限额
-    if (profile) {
-      const q = await checkQuota(profile);
+    // 强制刷新一次限额和用户信息
+    const latestProfile = await getCurrentUser();
+    if (latestProfile) {
+      setProfile(latestProfile);
+      const q = await checkQuota(latestProfile);
       setQuota(q);
       if (!q.canDivine) {
         setError("今日起卦次数已用尽，请明日再来。");
@@ -102,6 +109,9 @@ const App: React.FC = () => {
         setTimeout(() => setError(null), 5000);
         return;
       }
+    } else {
+      setStep(AppStep.AUTH);
+      return;
     }
     
     setStep(AppStep.INPUT);
